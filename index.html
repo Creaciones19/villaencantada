@@ -8,7 +8,6 @@
     <title>Escáner de Código de Barras</title>
 
     <script src="https://cdn.jsdelivr.net/npm/dynamsoft-javascript-barcode@9.0.0/dist/dbr.js"></script>
-
     <style>
         *{
             margin:0;
@@ -98,18 +97,7 @@
 };
                 await scanner.show();
 
-                setTimeout(()=>{
-
-                    let selector =
-                        document.getElementsByClassName(
-                            "dbrScanner-sel-camera"
-                        );
-
-                    if(selector.length > 0){
-                        selector[0].hidden = true;
-                    }
-
-                },1000);
+              
 
             }
             catch(error){
