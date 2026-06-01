@@ -245,36 +245,35 @@ body{
 </head>
 
 <body>
-
-<script src="html5-qrcode/html5-qrcode.min.js"></script>
-
-<div class="header">
-
-    <div class="titulo">
+  <div class="titulo">
         Buscar Productos
     </div>
 
-    <div class="contenedor-busqueda">
+<div class="contenedor-busqueda">
 
-        <input
-        type="text"
-        id="buscar"
-        class="buscador"
-        placeholder="Escanee o escriba producto...">
+    <input
+    type="text"
+    id="buscar"
+    class="buscador"
+    placeholder="Escanee o escriba producto...">
 
-        <button
-        id="camara"
-        class="limpiar">
-            📷 Escanear
-        </button>
+    <button
+    id="camara"
+    class="limpiar">
+        📷 Escanear
+    </button>
 
-        <button
-        id="limpiar"
-        class="limpiar">
-            Borrar
-        </button>
+    <button
+    id="cerrarCamara"
+    class="limpiar">
+        Cerrar cámara
+    </button>
 
-    </div>
+    <button
+    id="limpiar"
+    class="limpiar">
+        Borrar
+    </button>
 
 </div>
 
@@ -291,6 +290,7 @@ margin:20px auto;
 class="productos"
 id="productos">
 </div>
+<script src="html5-qrcode/html5-qrcode.min.js"></script>
 <script>
 
 let productos = [];
@@ -306,6 +306,9 @@ document.getElementById("limpiar");
 
 const camara =
 document.getElementById("camara");
+
+const cerrarCamara =
+document.getElementById("cerrarCamara");
 
 const lector =
 document.getElementById("lector");
@@ -536,32 +539,23 @@ async ()=>{
             "Escáner iniciado"
         );
 
-        await scanner.start(
+await scanner.start(
+    cameraId,
+    {
+        fps: 10,
 
-            cameraId,
+        qrbox: 250,
 
-            {
-                fps:20,
+        aspectRatio: 1,
 
-                qrbox:{
-                    width:300,
-                    height:300
-                },
-
-                aspectRatio:1,
-
-                formatsToSupport:[
-
-                    Html5QrcodeSupportedFormats.EAN_13,
-                    Html5QrcodeSupportedFormats.EAN_8,
-                    Html5QrcodeSupportedFormats.CODE_128,
-                    Html5QrcodeSupportedFormats.CODE_39,
-                    Html5QrcodeSupportedFormats.UPC_A,
-                    Html5QrcodeSupportedFormats.UPC_E,
-                    Html5QrcodeSupportedFormats.QR_CODE
-
-                ]
-
+        formatsToSupport: [
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.QR_CODE
+        ]
             },
 
             async(codigo)=>{
@@ -610,6 +604,28 @@ async ()=>{
 
         scanner =
         null;
+
+        lector.style.display =
+        "none";
+
+    }
+
+});
+
+/*CERRAR CAMARA */
+cerrarCamara.addEventListener(
+"click",
+async ()=>{
+
+    if(scanner){
+
+        await scanner.stop();
+
+        await scanner.clear();
+
+        scanner = null;
+
+        lector.innerHTML = "";
 
         lector.style.display =
         "none";

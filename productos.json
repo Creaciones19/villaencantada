@@ -33,6 +33,13 @@
     "nombre":"Sabritas Original",
     "precio":20,
     "imagen":"imagenes/sabritas.webp"
+  },
+
+ {
+    "codigo":"7 506475 125543",
+    "nombre":"nescafe ice",
+    "precio":55,
+    "imagen":"imagenes/nescafe ice.webp"
   }
 ]
 
