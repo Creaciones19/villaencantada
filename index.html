@@ -36,41 +36,30 @@ video{
 
 <br><br>
 
-<video id="video" autoplay playsinline></video>
+<video id="video" autoplay playsinline muted></video>
 
 <div id="resultado">
     Esperando...
 </div>
 
-```html
 <script>
 
 const video = document.getElementById("video");
 const resultado = document.getElementById("resultado");
 
-document.getElementById("iniciar").addEventListener("click", async ()=>{
+document.getElementById("iniciar").addEventListener("click", async () => {
 
     try{
 
+        resultado.innerHTML = "Solicitando cámara...";
+
         if(!("BarcodeDetector" in window)){
 
-            alert("BarcodeDetector NO disponible");
+            resultado.innerHTML =
+            "BarcodeDetector NO disponible";
 
             return;
         }
-
-        const devices =
-        await navigator.mediaDevices.enumerateDevices();
-
-        const cams =
-        devices.filter(
-            d => d.kind === "videoinput"
-        );
-
-        alert(
-            "Camaras encontradas: " +
-            cams.length
-        );
 
         const stream =
         await navigator.mediaDevices.getUserMedia({
@@ -78,12 +67,6 @@ document.getElementById("iniciar").addEventListener("click", async ()=>{
             video:{
                 facingMode:{
                     ideal:"environment"
-                },
-                width:{
-                    ideal:1920
-                },
-                height:{
-                    ideal:1080
                 }
             }
 
@@ -91,15 +74,10 @@ document.getElementById("iniciar").addEventListener("click", async ()=>{
 
         video.srcObject = stream;
 
-        video.onloadedmetadata = ()=>{
+        await video.play();
 
-            resultado.innerHTML =
-            "Video: " +
-            video.videoWidth +
-            " x " +
-            video.videoHeight;
-
-        };
+        resultado.innerHTML =
+        "Cámara iniciada";
 
         const detector =
         new BarcodeDetector({
@@ -116,23 +94,18 @@ document.getElementById("iniciar").addEventListener("click", async ()=>{
 
         });
 
-        setInterval(async ()=>{
+        setInterval(async()=>{
 
             try{
 
                 const codigos =
                 await detector.detect(video);
 
-                if(codigos.length){
+                if(codigos.length > 0){
 
                     resultado.innerHTML =
                     "Código: " +
                     codigos[0].rawValue;
-
-                }else{
-
-                    resultado.innerHTML =
-                    "Detectados: 0";
 
                 }
 
@@ -142,21 +115,21 @@ document.getElementById("iniciar").addEventListener("click", async ()=>{
 
             }
 
-        },500);
+        },300);
 
     }catch(error){
 
-        alert(error.message);
+        resultado.innerHTML =
+        "ERROR: " +
+        error.message;
 
-        console.log(error);
+        console.error(error);
 
     }
 
 });
 
 </script>
-```
-
 
 </body>
 </html>
