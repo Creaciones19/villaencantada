@@ -72,12 +72,10 @@ document.getElementById("iniciar").addEventListener("click", async () => {
 
         });
 
-        video.srcObject = stream;
+      video.srcObject = stream;
 
-        await video.play();
-
-        resultado.innerHTML =
-        "Cámara iniciada";
+resultado.innerHTML =
+"Cámara iniciada";
 
         const detector =
         new BarcodeDetector({
