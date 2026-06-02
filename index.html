@@ -42,6 +42,7 @@ video{
     Esperando...
 </div>
 
+```html
 <script>
 
 const video = document.getElementById("video");
@@ -49,63 +50,113 @@ const resultado = document.getElementById("resultado");
 
 document.getElementById("iniciar").addEventListener("click", async ()=>{
 
-    if(!("BarcodeDetector" in window)){
+    try{
 
-        alert("BarcodeDetector NO disponible");
+        if(!("BarcodeDetector" in window)){
 
-        return;
-    }
+            alert("BarcodeDetector NO disponible");
 
-    const stream = await navigator.mediaDevices.getUserMedia({
-
-        video:{
-            facingMode:"environment"
+            return;
         }
 
-    });
+        const devices =
+        await navigator.mediaDevices.enumerateDevices();
 
-    video.srcObject = stream;
+        const cams =
+        devices.filter(
+            d => d.kind === "videoinput"
+        );
 
-    const detector = new BarcodeDetector({
+        alert(
+            "Camaras encontradas: " +
+            cams.length
+        );
 
-        formats:[
-            "ean_13",
-            "ean_8",
-            "code_128",
-            "code_39",
-            "upc_a",
-            "upc_e",
-            "qr_code"
-        ]
+        const stream =
+        await navigator.mediaDevices.getUserMedia({
 
-    });
+            video:{
+                facingMode:{
+                    ideal:"environment"
+                },
+                width:{
+                    ideal:1920
+                },
+                height:{
+                    ideal:1080
+                }
+            }
 
-    setInterval(async ()=>{
+        });
 
-        try{
+        video.srcObject = stream;
 
-            const codigos =
-            await detector.detect(video);
+        video.onloadedmetadata = ()=>{
 
-            if(codigos.length){
+            resultado.innerHTML =
+            "Video: " +
+            video.videoWidth +
+            " x " +
+            video.videoHeight;
 
-                resultado.innerHTML =
-                "Código: " +
-                codigos[0].rawValue;
+        };
+
+        const detector =
+        new BarcodeDetector({
+
+            formats:[
+                "ean_13",
+                "ean_8",
+                "code_128",
+                "code_39",
+                "upc_a",
+                "upc_e",
+                "qr_code"
+            ]
+
+        });
+
+        setInterval(async ()=>{
+
+            try{
+
+                const codigos =
+                await detector.detect(video);
+
+                if(codigos.length){
+
+                    resultado.innerHTML =
+                    "Código: " +
+                    codigos[0].rawValue;
+
+                }else{
+
+                    resultado.innerHTML =
+                    "Detectados: 0";
+
+                }
+
+            }catch(error){
+
+                console.log(error);
 
             }
 
-        }catch(error){
+        },500);
 
-            console.log(error);
+    }catch(error){
 
-        }
+        alert(error.message);
 
-    },500);
+        console.log(error);
+
+    }
 
 });
 
 </script>
+```
+
 
 </body>
 </html>
