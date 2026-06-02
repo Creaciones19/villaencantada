@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Prueba ZXing</title>
+
+<script src="https://unpkg.com/@zxing/library@latest"></script>
+
+<style>
+
+body{
+    font-family:Arial,sans-serif;
+    text-align:center;
+    padding:20px;
+}
+
+video{
+    width:100%;
+    max-width:500px;
+    border:2px solid #000;
+}
+
+button{
+    padding:12px 20px;
+    font-size:18px;
+    cursor:pointer;
+}
+
+#resultado{
+    margin-top:20px;
+    font-size:24px;
+    font-weight:bold;
+    word-break:break-all;
+}
+
+</style>
+</head>
+<body>
+
+<h1>Prueba ZXing</h1>
+
+<button id="iniciar">
+    Iniciar Cámara
+</button>
+
+<br><br>
+
+<video id="video"></video>
+
+<div id="resultado">
+    Esperando...
+</div>
+
+<script>
+
+const video =
+document.getElementById("video");
+
+const resultado =
+document.getElementById("resultado");
+
+let reader = null;
+
+document
+.getElementById("iniciar")
+.addEventListener(
+"click",
+async ()=>{
+
+    try{
+
+        resultado.innerHTML =
+        "Iniciando cámara...";
+
+        reader =
+        new ZXing.BrowserMultiFormatReader();
+
+        const devices =
+        await reader.listVideoInputDevices();
+
+        if(devices.length === 0){
+
+            resultado.innerHTML =
+            "No hay cámaras";
+
+            return;
+
+        }
+
+     let cameraId = devices[devices.length - 1].deviceId;
+
+        resultado.innerHTML =
+        "Cámara encontrada";
+
+        reader.decodeFromVideoDevice(
+
+            cameraId,
+
+            "video",
+
+            (result,error)=>{
+
+                if(result){
+
+                    resultado.innerHTML =
+                    "CÓDIGO: " +
+                    result.getText();
+
+                    console.log(
+                        result.getText()
+                    );
+
+                }
+
+            }
+
+        );
+
+    }
+
+    catch(error){
+
+        resultado.innerHTML =
+        "ERROR: " +
+        error.message;
+
+        console.error(error);
+
+    }
+
+});
+
+</script>
+
+</body>
+</html>

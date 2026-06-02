@@ -285,13 +285,21 @@ display:none;
 max-width:500px;
 margin:20px auto;
 ">
+
+    <video
+    id="video"
+    style="
+    width:100%;
+    ">
+    </video>
+
 </div>
 
 <div
 class="productos"
 id="productos">
 </div>
-<script src="html5-qrcode/html5-qrcode.min.js"></script>
+<script src="https://unpkg.com/@zxing/library@latest"></script>
 <script>
  /* AGREGA SONIDO */   
 function beep() {
@@ -475,111 +483,93 @@ limpiar.addEventListener(
 });
 
 let scanner = null;
-let lastDetected = null;
-let timeoutNoDetect = null;
 
 camara.addEventListener("click", async () => {
 
-    lector.style.display = "block";
+    try{
 
-    if (scanner) return;
+        lector.style.display = "block";
 
-    scanner = new Html5Qrcode("lector");
+        if(scanner) return;
 
-    const cameras = await Html5Qrcode.getCameras();
-    if (!cameras.length) {
-        alert("No hay cámara");
-        return;
-    }
+        scanner =
+        new ZXing.BrowserMultiFormatReader();
 
-    let cameraId = cameras[0].id;
+        const devices =
+        await scanner.listVideoInputDevices();
 
-    const back = cameras.find(c =>
-        /back|rear|environment/i.test(c.label)
-    );
+        if(devices.length === 0){
 
-    if (back) cameraId = back.id;
+            alert("No hay cámara");
 
-    const config = {
-        fps: 10,
-        qrbox: 300
-    };
-
-    const onScanSuccess = (codigo) => {
-
-        lastDetected = codigo;
-
-        console.log("DETECTADO:", codigo);
-
-        beep();
-        navigator.vibrate?.(100);
-
-        const encontrado = productos.find(p =>
-            String(p.codigo) === String(codigo)
-        );
-
-        if (encontrado) {
-
-            buscar.value = codigo;
-            buscar.dispatchEvent(new Event("input"));
-
-        } else {
-
-            contenedor.innerHTML = `
-                <div style="
-                    grid-column:1/-1;
-                    text-align:center;
-                    padding:40px;
-                    font-size:22px;
-                    color:red;
-                    font-weight:bold;
-                ">
-                    ❌ NO REGISTRADO
-                </div>
-            `;
+            return;
 
         }
 
-        // reiniciar detector de “no lectura”
-        clearTimeout(timeoutNoDetect);
-        timeoutNoDetect = setTimeout(() => {
-            contenedor.innerHTML = `
-                <div style="
-                    grid-column:1/-1;
-                    text-align:center;
-                    padding:40px;
-                    font-size:20px;
-                    color:#777;
-                ">
-                    📷 Escaneando... no se detecta código
-                </div>
-            `;
-        }, 2000);
+        let cameraId =
+        devices[devices.length - 1].deviceId;
 
-    };
+        scanner.decodeFromVideoDevice(
 
-    scanner.start(cameraId, config, onScanSuccess, () => {});
+            cameraId,
+
+            "video",
+
+            (result,error)=>{
+
+                if(result){
+
+                    const codigo =
+                    result.getText();
+
+                    console.log(
+                        "DETECTADO:",
+                        codigo
+                    );
+
+                    beep();
+
+                    navigator.vibrate?.(100);
+
+                    buscar.value =
+                    codigo;
+
+                    buscar.dispatchEvent(
+                        new Event("input")
+                    );
+
+                }
+
+            }
+
+        );
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+        alert(error.message);
+
+    }
+
 });
-
 /*CERRAR CAMARA */
 cerrarCamara.addEventListener(
 "click",
-async ()=>{
+()=>{
 
     if(scanner){
 
-        await scanner.stop();
-
-        await scanner.clear();
+        scanner.reset();
 
         scanner = null;
 
-        lector.innerHTML = "";
-
-        lector.style.display =
-        "none";
-
     }
+
+    lector.style.display =
+    "none";
 
 });
 /* INICIAR */
