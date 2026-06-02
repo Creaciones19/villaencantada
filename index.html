@@ -1,614 +1,111 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Productos</title>
+<title>Prueba BarcodeDetector</title>
 
 <style>
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
-
 body{
-    font-family:Arial, Helvetica, sans-serif;
-    background:#f3f3f3;
+    font-family:Arial,sans-serif;
+    text-align:center;
     padding:20px;
 }
 
-/* HEADER */
-
-.header{
-    margin-bottom:25px;
-}
-
-.titulo{
-    font-size:32px;
-    color:#222;
-    margin-bottom:15px;
-    font-weight:bold;
-}
-
-/* BUSCADOR */
-
-.contenedor-busqueda{
-
-    display:flex;
-    gap:12px;
-    align-items:center;
-
-}
-
-.buscador{
-
-    flex:1;
-
-    height:58px;
-
-    padding:0 20px;
-
-    border:1px solid #ddd;
-    border-radius:14px;
-
-    background:white;
-
-    color:#222;
-
-    font-size:17px;
-
-    outline:none;
-
-}
-
-.buscador:focus{
-    border-color:#f5c400;
-}
-
-/* BOTÓN */
-
-.limpiar{
-
-    height:58px;
-
-    padding:0 24px;
-
-    border:none;
-    border-radius:14px;
-
-    background:#ff30a2;
-
-    color:white;
-
-    font-size:16px;
-    font-weight:bold;
-
-    cursor:pointer;
-
-    transition:.2s;
-
-}
-
-.limpiar:hover{
-
-    transform:scale(1.03);
-
-}
-
-/* PRODUCTOS */
-
-.productos{
-
-    display:grid;
-
-    grid-template-columns:
-    repeat(auto-fill,minmax(180px,1fr));
-
-    gap:20px;
-}
-
-/* CARD */
-
-.card{
-    background:white;
-    border-radius:8px;
-    padding:12px;
-    transition:.2s;
-    border:1px solid #e5e5e5;
-}
-
-.card:hover{
-    transform:translateY(-3px);
-    box-shadow:0 5px 15px rgba(0,0,0,.08);
-}
-
-/* IMAGEN */
-
-.imagen{
+video{
     width:100%;
-    height:140px;
-    object-fit:contain;
-    background:#fafafa;
-    margin-bottom:10px;
+    max-width:500px;
+    border:2px solid #000;
 }
 
-/* INFO */
-
-.info{
-    text-align:center;
-}
-
-.nombre{
-    font-size:16px;
+#resultado{
+    margin-top:20px;
+    font-size:24px;
     font-weight:bold;
-    color:#222;
-    margin-bottom:6px;
 }
-
-.codigo{
-    font-size:13px;
-    color:#777;
-    margin-bottom:10px;
-}
-
-.precio{
-    background:#ffd400;
-    color:#111;
-    display:inline-block;
-    padding:8px 18px;
-    font-size:26px;
-    font-weight:bold;
-    border-radius:6px;
-}
-/* =========================
-   RESPONSIVE DESIGN
-========================= */
-
-@media (max-width: 768px){
-
-    body{
-        padding:12px;
-    }
-
-    .titulo{
-        font-size:24px;
-        text-align:center;
-    }
-
-    .contenedor-busqueda{
-        flex-direction:column;
-        align-items:stretch;
-    }
-
-    .buscador{
-        width:100%;
-        height:52px;
-        font-size:16px;
-    }
-
-    .limpiar{
-        width:100%;
-        height:48px;
-        font-size:15px;
-    }
-
-    .productos{
-        grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
-        gap:12px;
-    }
-
-    .imagen{
-        height:110px;
-    }
-
-    .precio{
-        font-size:20px;
-        padding:6px 14px;
-    }
-
-    #lector{
-        width:100% !important;
-    }
-}
-
-@media (max-width: 480px){
-
-    .productos{
-        grid-template-columns:repeat(2,1fr);
-    }
-
-    .titulo{
-        font-size:20px;
-    }
-
-    .card{
-        padding:10px;
-    }
-
-    .nombre{
-        font-size:14px;
-    }
-
-    .codigo{
-        font-size:12px;
-    }
-
-    .precio{
-        font-size:18px;
-    }
-}
-
-
 </style>
+
 </head>
-
 <body>
-  <div class="titulo">
-        Buscar Productos
-    </div>
 
-<div class="contenedor-busqueda">
+<h1>Prueba de Código de Barras</h1>
 
-    <input
-    type="text"
-    id="buscar"
-    class="buscador"
-    placeholder="Escanee o escriba producto...">
+<button id="iniciar">
+    Iniciar Cámara
+</button>
 
-    <button
-    id="camara"
-    class="limpiar">
-        📷 Escanear
-    </button>
+<br><br>
 
-    <button
-    id="cerrarCamara"
-    class="limpiar">
-        Cerrar cámara
-    </button>
+<video id="video" autoplay playsinline></video>
 
-    <button
-    id="limpiar"
-    class="limpiar">
-        Borrar
-    </button>
-
+<div id="resultado">
+    Esperando...
 </div>
 
-<div
-id="lector"
-style="
-display:none;
-max-width:500px;
-margin:20px auto;
-">
-</div>
-
-<div
-class="productos"
-id="productos">
-</div>
-<script src="html5-qrcode/html5-qrcode.min.js"></script>
 <script>
- /* AGREGA SONIDO */   
-function beep() {
-    const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
-    audio.play();
-}
 
+const video = document.getElementById("video");
+const resultado = document.getElementById("resultado");
 
- /* CONSTANTES A TRABAJAR */  
-let productos = [];
-const contenedor =
-document.getElementById("productos");
+document.getElementById("iniciar").addEventListener("click", async ()=>{
 
-const buscar =
-document.getElementById("buscar");
+    if(!("BarcodeDetector" in window)){
 
-const limpiar =
-document.getElementById("limpiar");
-
-const camara =
-document.getElementById("camara");
-
-const cerrarCamara =
-document.getElementById("cerrarCamara");
-
-const lector =
-document.getElementById("lector");
-
-
-
-/* CARGAR JSON */
-
-async function cargarProductos(){
-
-    try{
-
-        const res =
-        await fetch("./productos.json");
-
-        if(!res.ok){
-
-            throw new Error(
-            "No se pudo cargar productos.json"
-            );
-
-        }
-
-        productos =
-        await res.json();
-
-        productos.sort((a,b)=>
-
-            a.nombre.localeCompare(
-                b.nombre
-            )
-
-        );
-
-        mostrar(productos);
-
-    }catch(error){
-
-        console.error(error);
-
-        alert(
-        "Error cargando productos.json"
-        );
-
-    }
-
-}
-
-/* MOSTRAR */
-
-function mostrar(lista){
-
-    contenedor.innerHTML = "";
-
-    if(lista.length === 0){
-
-        contenedor.innerHTML = `
-            <div style="
-                grid-column:1/-1;
-                text-align:center;
-                padding:40px;
-                font-size:20px;
-                font-weight:bold;
-                color:#777;
-            ">
-                Código no registrado
-            </div>
-        `;
+        alert("BarcodeDetector NO disponible");
 
         return;
     }
 
-    lista.forEach(producto=>{
+    const stream = await navigator.mediaDevices.getUserMedia({
 
-        contenedor.innerHTML += `
-
-        <div class="card">
-
-            <img
-            src="${producto.imagen}"
-            class="imagen">
-
-            <div class="info">
-
-                <div class="nombre">
-                    ${producto.nombre}
-                </div>
-
-                <div class="codigo">
-                    Código: ${producto.codigo}
-                </div>
-
-                <div class="precio">
-                    $${producto.precio}
-                </div>
-
-            </div>
-
-        </div>
-
-        `;
+        video:{
+            facingMode:"environment"
+        }
 
     });
 
-}
+    video.srcObject = stream;
 
-/* BUSCADOR */
+    const detector = new BarcodeDetector({
 
-buscar.addEventListener(
-"input",
-()=>{
+        formats:[
+            "ean_13",
+            "ean_8",
+            "code_128",
+            "code_39",
+            "upc_a",
+            "upc_e",
+            "qr_code"
+        ]
 
-    const texto =
-    buscar.value
-    .trim()
-    .toLowerCase();
+    });
 
-    if(texto === ""){
+    setInterval(async ()=>{
 
-        mostrar(productos);
+        try{
 
-        return;
+            const codigos =
+            await detector.detect(video);
 
-    }
+            if(codigos.length){
 
-    const filtrados =
-    productos.filter(p=>
+                resultado.innerHTML =
+                "Código: " +
+                codigos[0].rawValue;
 
-        String(p.codigo)
-        .toLowerCase()
-        .includes(texto)
+            }
 
-        ||
+        }catch(error){
 
-        p.nombre
-        .toLowerCase()
-        .includes(texto)
-
-    );
-
-    mostrar(filtrados);
-
-});
-
-/* LIMPIAR */
-
-limpiar.addEventListener(
-"click",
-()=>{
-
-    buscar.value = "";
-
-    mostrar(productos);
-
-    buscar.focus();
-
-});
-
-let scanner = null;
-let lastDetected = null;
-let timeoutNoDetect = null;
-
-camara.addEventListener("click", async () => {
-
-    lector.style.display = "block";
-
-    if (scanner) return;
-
-    scanner = new Html5Qrcode("lector");
-
-    const cameras = await Html5Qrcode.getCameras();
-    if (!cameras.length) {
-        alert("No hay cámara");
-        return;
-    }
-
-    let cameraId = cameras[0].id;
-
-    const back = cameras.find(c =>
-        /back|rear|environment/i.test(c.label)
-    );
-
-    if (back) cameraId = back.id;
-
-    const config = {
-        fps: 10,
-        qrbox: 300
-    };
-
-    const onScanSuccess = (codigo) => {
-
-        lastDetected = codigo;
-
-        console.log("DETECTADO:", codigo);
-
-        beep();
-        navigator.vibrate?.(100);
-
-        const encontrado = productos.find(p =>
-            String(p.codigo) === String(codigo)
-        );
-
-        if (encontrado) {
-
-            buscar.value = codigo;
-            buscar.dispatchEvent(new Event("input"));
-
-        } else {
-
-            contenedor.innerHTML = `
-                <div style="
-                    grid-column:1/-1;
-                    text-align:center;
-                    padding:40px;
-                    font-size:22px;
-                    color:red;
-                    font-weight:bold;
-                ">
-                    ❌ NO REGISTRADO
-                </div>
-            `;
+            console.log(error);
 
         }
 
-        // reiniciar detector de “no lectura”
-        clearTimeout(timeoutNoDetect);
-        timeoutNoDetect = setTimeout(() => {
-            contenedor.innerHTML = `
-                <div style="
-                    grid-column:1/-1;
-                    text-align:center;
-                    padding:40px;
-                    font-size:20px;
-                    color:#777;
-                ">
-                    📷 Escaneando... no se detecta código
-                </div>
-            `;
-        }, 2000);
-
-    };
-
-    scanner.start(cameraId, config, onScanSuccess, () => {});
-});
-
-/*CERRAR CAMARA */
-cerrarCamara.addEventListener(
-"click",
-async ()=>{
-
-    if(scanner){
-
-        await scanner.stop();
-
-        await scanner.clear();
-
-        scanner = null;
-
-        lector.innerHTML = "";
-
-        lector.style.display =
-        "none";
-
-    }
+    },500);
 
 });
-/* INICIAR */
 
-cargarProductos();
-
-buscar.focus();
-
-/* SIEMPRE LISTO PARA PISTOLA */
-
-document.addEventListener(
-"click",
-()=>{
-
-    buscar.focus();
-
-}
-);
-
-window.addEventListener(
-"load",
-()=>{
-
-    buscar.focus();
-
-}
-);
 </script>
 
 </body>
 </html>
-```
