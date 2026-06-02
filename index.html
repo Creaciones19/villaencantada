@@ -3,9 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Prueba BarcodeDetector</title>
+
+<title>Prueba ZXing</title>
+
+<script src="https://unpkg.com/@zxing/library@latest"></script>
 
 <style>
+
 body{
     font-family:Arial,sans-serif;
     text-align:center;
@@ -18,17 +22,24 @@ video{
     border:2px solid #000;
 }
 
+button{
+    padding:12px 20px;
+    font-size:18px;
+    cursor:pointer;
+}
+
 #resultado{
     margin-top:20px;
     font-size:24px;
     font-weight:bold;
+    word-break:break-all;
 }
-</style>
 
+</style>
 </head>
 <body>
 
-<h1>Prueba de Código de Barras</h1>
+<h1>Prueba ZXing</h1>
 
 <button id="iniciar">
     Iniciar Cámara
@@ -36,7 +47,7 @@ video{
 
 <br><br>
 
-<video id="video" autoplay playsinline muted></video>
+<video id="video"></video>
 
 <div id="resultado">
     Esperando...
@@ -44,78 +55,73 @@ video{
 
 <script>
 
-const video = document.getElementById("video");
-const resultado = document.getElementById("resultado");
+const video =
+document.getElementById("video");
 
-document.getElementById("iniciar").addEventListener("click", async () => {
+const resultado =
+document.getElementById("resultado");
+
+let reader = null;
+
+document
+.getElementById("iniciar")
+.addEventListener(
+"click",
+async ()=>{
 
     try{
 
-        resultado.innerHTML = "Solicitando cámara...";
+        resultado.innerHTML =
+        "Iniciando cámara...";
 
-        if(!("BarcodeDetector" in window)){
+        reader =
+        new ZXing.BrowserMultiFormatReader();
+
+        const devices =
+        await reader.listVideoInputDevices();
+
+        if(devices.length === 0){
 
             resultado.innerHTML =
-            "BarcodeDetector NO disponible";
+            "No hay cámaras";
 
             return;
+
         }
 
-        const stream =
-        await navigator.mediaDevices.getUserMedia({
+        let cameraId =
+        devices[0].deviceId;
 
-            video:{
-                facingMode:{
-                    ideal:"environment"
-                }
-            }
+        resultado.innerHTML =
+        "Cámara encontrada";
 
-        });
+        reader.decodeFromVideoDevice(
 
-      video.srcObject = stream;
+            cameraId,
 
-resultado.innerHTML =
-"Cámara iniciada";
+            "video",
 
-        const detector =
-        new BarcodeDetector({
+            (result,error)=>{
 
-            formats:[
-                "ean_13",
-                "ean_8",
-                "code_128",
-                "code_39",
-                "upc_a",
-                "upc_e",
-                "qr_code"
-            ]
-
-        });
-
-        setInterval(async()=>{
-
-            try{
-
-                const codigos =
-                await detector.detect(video);
-
-                if(codigos.length > 0){
+                if(result){
 
                     resultado.innerHTML =
-                    "Código: " +
-                    codigos[0].rawValue;
+                    "CÓDIGO: " +
+                    result.getText();
+
+                    console.log(
+                        result.getText()
+                    );
 
                 }
 
-            }catch(error){
-
-                console.log(error);
-
             }
 
-        },300);
+        );
 
-    }catch(error){
+    }
+
+    catch(error){
 
         resultado.innerHTML =
         "ERROR: " +
