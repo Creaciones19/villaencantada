@@ -264,6 +264,18 @@ body{
         📷 Escanear
     </button>
 
+        <button
+    id="agregar"
+    class="limpiar">
+        Agregar producto
+</button>
+
+<button
+id="editar"
+class="limpiar">
+    Editar
+</button>
+
     <button
     id="cerrarCamara"
     class="limpiar">
@@ -275,6 +287,7 @@ body{
     class="limpiar">
         Borrar
     </button>
+
 
 </div>
 
@@ -300,7 +313,33 @@ class="productos"
 id="productos">
 </div>
 <script src="https://unpkg.com/@zxing/library@latest"></script>
-<script>
+
+    
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  addDoc,
+  getDocs,
+  collection
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+/* ================= FIREBASE ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyBEHWiEWstdu6r2D0i4S3CAu2Eyv1q9aaQ",
+  authDomain: "tienda-abarroteslamaravilla.firebaseapp.com",
+  projectId: "tienda-abarroteslamaravilla",
+  storageBucket: "tienda-abarroteslamaravilla.firebasestorage.app",
+  messagingSenderId: "1095327917170",
+  appId: "1:1095327917170:web:a3dab096621d695b6e0eeb"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
  /* AGREGA SONIDO */   
 function beep() {
     const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
@@ -325,52 +364,15 @@ document.getElementById("camara");
 const cerrarCamara =
 document.getElementById("cerrarCamara");
 
+const agregar =
+document.getElementById("agregar");
+
+const editar =
+document.getElementById("editar");
+
 const lector =
 document.getElementById("lector");
 
-
-
-/* CARGAR JSON */
-
-async function cargarProductos(){
-
-    try{
-
-        const res =
-        await fetch("./productos.json");
-
-        if(!res.ok){
-
-            throw new Error(
-            "No se pudo cargar productos.json"
-            );
-
-        }
-
-        productos =
-        await res.json();
-
-        productos.sort((a,b)=>
-
-            a.nombre.localeCompare(
-                b.nombre
-            )
-
-        );
-
-        mostrar(productos);
-
-    }catch(error){
-
-        console.error(error);
-
-        alert(
-        "Error cargando productos.json"
-        );
-
-    }
-
-}
 
 /* MOSTRAR */
 
@@ -403,13 +405,13 @@ function mostrar(lista){
         <div class="card">
 
             <img
-            src="${producto.imagen}"
+            src="${producto.imagen || ''}"
             class="imagen">
 
             <div class="info">
 
-                <div class="nombre">
-                    ${producto.nombre}
+                <div class="Nombre">
+                 ${producto.nombre || producto.Nombre || "Sin nombre"}
                 </div>
 
                 <div class="codigo">
@@ -430,6 +432,46 @@ function mostrar(lista){
 
 }
 
+/* CARGAR PRODUCTOS DESDE FIREBASE */
+
+async function cargarProductos(){
+
+    try{
+
+        const querySnapshot =
+        await getDocs(
+            collection(db, "productos")
+        );
+
+        productos = [];
+
+        querySnapshot.forEach((docSnap)=>{
+
+            productos.push({
+                id: docSnap.id,
+                ...docSnap.data()
+            });
+
+        });
+        productos.sort((a,b)=>
+            (a.nombre || a.Nombre || "").localeCompare(b.nombre || b.Nombre || "")
+        );
+
+        mostrar(productos);
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+        alert(
+            "Error cargando productos desde Firebase"
+        );
+
+    }
+
+}
 /* BUSCADOR */
 
 buscar.addEventListener(
@@ -458,10 +500,9 @@ buscar.addEventListener(
 
         ||
 
-        p.nombre
-        .toLowerCase()
-        .includes(texto)
-
+      (p.nombre || p.Nombre || "")
+.toLowerCase()
+.includes(texto)
     );
 
     mostrar(filtrados);
@@ -572,6 +613,166 @@ cerrarCamara.addEventListener(
     "none";
 
 });
+
+
+
+/* AGREGAR PRODUCTO*/
+/* AGREGAR PRODUCTO*/
+agregar.addEventListener(
+"click",
+async ()=>{
+
+    const nombre =
+    prompt("Nombre del producto");
+
+    if(!nombre) return;
+
+    const codigo =
+    prompt("Código de barras");
+
+    if(!codigo) return;
+
+    const precio =
+    prompt("Precio");
+
+    if(!precio) return;
+
+    try{
+
+        await addDoc(
+
+            collection(db, "productos"),
+
+            {
+                nombre: nombre,
+                codigo: codigo,
+                precio: Number(precio)
+            }
+
+        );
+
+        alert("Producto guardado");
+
+        cargarProductos();
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+        alert("Error guardando producto");
+
+    }
+
+});
+/* EDITAR */
+editar.addEventListener(
+"click",
+async ()=>{
+
+    const buscarProducto =
+    prompt(
+        "Escribe código o nombre"
+    );
+
+    if(!buscarProducto) return;
+
+    const texto =
+    buscarProducto
+    .toLowerCase()
+    .trim();
+
+    const producto =
+    productos.find(p =>
+
+        String(p.codigo)
+        .toLowerCase()
+        .includes(texto)
+
+        ||
+
+        (p.nombre || p.Nombre || "")
+        .toLowerCase()
+        .includes(texto)
+
+    );
+
+    if(!producto){
+
+        alert(
+            "Producto no encontrado"
+        );
+
+        return;
+
+    }
+
+    const nuevoNombre =
+    prompt(
+        "Nombre",
+        producto.nombre || producto.Nombre || ""
+    );
+
+    if(nuevoNombre === null)
+        return;
+
+    const nuevoCodigo =
+    prompt(
+        "Código",
+        producto.codigo
+    );
+
+    if(nuevoCodigo === null)
+        return;
+
+    const nuevoPrecio =
+    prompt(
+        "Precio",
+        producto.precio
+    );
+
+    if(nuevoPrecio === null)
+        return;
+
+    try{
+
+        await setDoc(
+
+          doc(
+    db,
+    "productos",
+    producto.id
+),
+            {
+                nombre: nuevoNombre,
+                codigo: nuevoCodigo,
+                precio: Number(nuevoPrecio)
+            }
+
+        );
+
+     
+        alert(
+            "Producto actualizado"
+        );
+
+        cargarProductos();
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+        alert(
+            "Error al actualizar"
+        );
+
+    }
+
+});
+
 /* INICIAR */
 
 cargarProductos();
