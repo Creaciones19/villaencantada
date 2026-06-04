@@ -264,6 +264,18 @@ body{
         📷 Escanear
     </button>
 
+        <button
+    id="agregar"
+    class="limpiar">
+        Agregar producto
+</button>
+
+<button
+id="editar"
+class="limpiar">
+    Editar
+</button>
+
     <button
     id="cerrarCamara"
     class="limpiar">
@@ -276,6 +288,7 @@ body{
         Borrar
     </button>
 
+
 </div>
 
 <div
@@ -285,14 +298,48 @@ display:none;
 max-width:500px;
 margin:20px auto;
 ">
+
+    <video
+    id="video"
+    style="
+    width:100%;
+    ">
+    </video>
+
 </div>
 
 <div
 class="productos"
 id="productos">
 </div>
-<script src="html5-qrcode/html5-qrcode.min.js"></script>
-<script>
+<script src="https://unpkg.com/@zxing/library@latest"></script>
+
+    
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  addDoc,
+  getDocs,
+  collection
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+/* ================= FIREBASE ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyBEHWiEWstdu6r2D0i4S3CAu2Eyv1q9aaQ",
+  authDomain: "tienda-abarroteslamaravilla.firebaseapp.com",
+  projectId: "tienda-abarroteslamaravilla",
+  storageBucket: "tienda-abarroteslamaravilla.firebasestorage.app",
+  messagingSenderId: "1095327917170",
+  appId: "1:1095327917170:web:a3dab096621d695b6e0eeb"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
  /* AGREGA SONIDO */   
 function beep() {
     const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
@@ -317,52 +364,15 @@ document.getElementById("camara");
 const cerrarCamara =
 document.getElementById("cerrarCamara");
 
+const agregar =
+document.getElementById("agregar");
+
+const editar =
+document.getElementById("editar");
+
 const lector =
 document.getElementById("lector");
 
-
-
-/* CARGAR JSON */
-
-async function cargarProductos(){
-
-    try{
-
-        const res =
-        await fetch("./productos.json");
-
-        if(!res.ok){
-
-            throw new Error(
-            "No se pudo cargar productos.json"
-            );
-
-        }
-
-        productos =
-        await res.json();
-
-        productos.sort((a,b)=>
-
-            a.nombre.localeCompare(
-                b.nombre
-            )
-
-        );
-
-        mostrar(productos);
-
-    }catch(error){
-
-        console.error(error);
-
-        alert(
-        "Error cargando productos.json"
-        );
-
-    }
-
-}
 
 /* MOSTRAR */
 
@@ -395,13 +405,13 @@ function mostrar(lista){
         <div class="card">
 
             <img
-            src="${producto.imagen}"
+            src="${producto.imagen || ''}"
             class="imagen">
 
             <div class="info">
 
-                <div class="nombre">
-                    ${producto.nombre}
+                <div class="Nombre">
+                 ${producto.nombre || producto.Nombre || "Sin nombre"}
                 </div>
 
                 <div class="codigo">
@@ -422,6 +432,46 @@ function mostrar(lista){
 
 }
 
+/* CARGAR PRODUCTOS DESDE FIREBASE */
+
+async function cargarProductos(){
+
+    try{
+
+        const querySnapshot =
+        await getDocs(
+            collection(db, "productos")
+        );
+
+        productos = [];
+
+        querySnapshot.forEach((docSnap)=>{
+
+            productos.push({
+                id: docSnap.id,
+                ...docSnap.data()
+            });
+
+        });
+        productos.sort((a,b)=>
+            (a.nombre || a.Nombre || "").localeCompare(b.nombre || b.Nombre || "")
+        );
+
+        mostrar(productos);
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+        alert(
+            "Error cargando productos desde Firebase"
+        );
+
+    }
+
+}
 /* BUSCADOR */
 
 buscar.addEventListener(
@@ -450,10 +500,9 @@ buscar.addEventListener(
 
         ||
 
-        p.nombre
-        .toLowerCase()
-        .includes(texto)
-
+      (p.nombre || p.Nombre || "")
+.toLowerCase()
+.includes(texto)
     );
 
     mostrar(filtrados);
@@ -475,113 +524,255 @@ limpiar.addEventListener(
 });
 
 let scanner = null;
-let lastDetected = null;
-let timeoutNoDetect = null;
 
 camara.addEventListener("click", async () => {
 
-    lector.style.display = "block";
+    try{
 
-    if (scanner) return;
+        lector.style.display = "block";
 
-    scanner = new Html5Qrcode("lector");
+        if(scanner) return;
 
-    const cameras = await Html5Qrcode.getCameras();
-    if (!cameras.length) {
-        alert("No hay cámara");
-        return;
-    }
+        scanner =
+        new ZXing.BrowserMultiFormatReader();
 
-    let cameraId = cameras[0].id;
+        const devices =
+        await scanner.listVideoInputDevices();
 
-    const back = cameras.find(c =>
-        /back|rear|environment/i.test(c.label)
-    );
+        if(devices.length === 0){
 
-    if (back) cameraId = back.id;
+            alert("No hay cámara");
 
-    const config = {
-        fps: 10,
-        qrbox: 300
-    };
-
-    const onScanSuccess = (codigo) => {
-
-        lastDetected = codigo;
-
-        console.log("DETECTADO:", codigo);
-
-        beep();
-        navigator.vibrate?.(100);
-
-        const encontrado = productos.find(p =>
-            String(p.codigo) === String(codigo)
-        );
-
-        if (encontrado) {
-
-            buscar.value = codigo;
-            buscar.dispatchEvent(new Event("input"));
-
-        } else {
-
-            contenedor.innerHTML = `
-                <div style="
-                    grid-column:1/-1;
-                    text-align:center;
-                    padding:40px;
-                    font-size:22px;
-                    color:red;
-                    font-weight:bold;
-                ">
-                    ❌ NO REGISTRADO
-                </div>
-            `;
+            return;
 
         }
 
-        // reiniciar detector de “no lectura”
-        clearTimeout(timeoutNoDetect);
-        timeoutNoDetect = setTimeout(() => {
-            contenedor.innerHTML = `
-                <div style="
-                    grid-column:1/-1;
-                    text-align:center;
-                    padding:40px;
-                    font-size:20px;
-                    color:#777;
-                ">
-                    📷 Escaneando... no se detecta código
-                </div>
-            `;
-        }, 2000);
+        let cameraId =
+        devices[devices.length - 1].deviceId;
 
-    };
+        scanner.decodeFromVideoDevice(
 
-    scanner.start(cameraId, config, onScanSuccess, () => {});
-});
+            cameraId,
 
-/*CERRAR CAMARA */
-cerrarCamara.addEventListener(
-"click",
-async ()=>{
+            "video",
 
-    if(scanner){
+            (result,error)=>{
 
-        await scanner.stop();
+                if(result){
 
-        await scanner.clear();
+                    const codigo =
+                    result.getText();
 
-        scanner = null;
+                    console.log(
+                        "DETECTADO:",
+                        codigo
+                    );
 
-        lector.innerHTML = "";
+                    beep();
 
-        lector.style.display =
-        "none";
+                    navigator.vibrate?.(100);
+
+                    buscar.value =
+                    codigo;
+
+                    buscar.dispatchEvent(
+                        new Event("input")
+                    );
+
+                }
+
+            }
+
+        );
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+        alert(error.message);
 
     }
 
 });
+/*CERRAR CAMARA */
+cerrarCamara.addEventListener(
+"click",
+()=>{
+
+    if(scanner){
+
+        scanner.reset();
+
+        scanner = null;
+
+    }
+
+    lector.style.display =
+    "none";
+
+});
+
+
+
+/* AGREGAR PRODUCTO*/
+/* AGREGAR PRODUCTO*/
+agregar.addEventListener(
+"click",
+async ()=>{
+
+    const nombre =
+    prompt("Nombre del producto");
+
+    if(!nombre) return;
+
+    const codigo =
+    prompt("Código de barras");
+
+    if(!codigo) return;
+
+    const precio =
+    prompt("Precio");
+
+    if(!precio) return;
+
+    try{
+
+        await addDoc(
+
+            collection(db, "productos"),
+
+            {
+                nombre: nombre,
+                codigo: codigo,
+                precio: Number(precio)
+            }
+
+        );
+
+        alert("Producto guardado");
+
+        cargarProductos();
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+        alert("Error guardando producto");
+
+    }
+
+});
+/* EDITAR */
+editar.addEventListener(
+"click",
+async ()=>{
+
+    const buscarProducto =
+    prompt(
+        "Escribe código o nombre"
+    );
+
+    if(!buscarProducto) return;
+
+    const texto =
+    buscarProducto
+    .toLowerCase()
+    .trim();
+
+    const producto =
+    productos.find(p =>
+
+        String(p.codigo)
+        .toLowerCase()
+        .includes(texto)
+
+        ||
+
+        (p.nombre || p.Nombre || "")
+        .toLowerCase()
+        .includes(texto)
+
+    );
+
+    if(!producto){
+
+        alert(
+            "Producto no encontrado"
+        );
+
+        return;
+
+    }
+
+    const nuevoNombre =
+    prompt(
+        "Nombre",
+        producto.nombre || producto.Nombre || ""
+    );
+
+    if(nuevoNombre === null)
+        return;
+
+    const nuevoCodigo =
+    prompt(
+        "Código",
+        producto.codigo
+    );
+
+    if(nuevoCodigo === null)
+        return;
+
+    const nuevoPrecio =
+    prompt(
+        "Precio",
+        producto.precio
+    );
+
+    if(nuevoPrecio === null)
+        return;
+
+    try{
+
+        await setDoc(
+
+          doc(
+    db,
+    "productos",
+    producto.id
+),
+            {
+                nombre: nuevoNombre,
+                codigo: nuevoCodigo,
+                precio: Number(nuevoPrecio)
+            }
+
+        );
+
+     
+        alert(
+            "Producto actualizado"
+        );
+
+        cargarProductos();
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+        alert(
+            "Error al actualizar"
+        );
+
+    }
+
+});
+
 /* INICIAR */
 
 cargarProductos();
