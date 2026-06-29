@@ -5,7 +5,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Productos</title>
-
 <style>
 
 *{
@@ -22,10 +21,6 @@ body{
 
 /* HEADER */
 
-.header{
-    margin-bottom:25px;
-}
-
 .titulo{
     font-size:32px;
     color:#222;
@@ -36,77 +31,79 @@ body{
 /* BUSCADOR */
 
 .contenedor-busqueda{
-
     display:flex;
     gap:12px;
     align-items:center;
-
+    flex-wrap:wrap;
 }
 
 .buscador{
-
     flex:1;
-
     height:58px;
-
     padding:0 20px;
-
     border:1px solid #ddd;
     border-radius:14px;
-
     background:white;
-
     color:#222;
-
     font-size:17px;
-
     outline:none;
-
 }
 
 .buscador:focus{
     border-color:#f5c400;
 }
 
-/* BOTÓN */
+/* =========================
+   BOTONES (UNIFICADO)
+========================= */
 
-.limpiar{
+.limpiar,
+.contador,
+#editar,
+#editarCamara,
+#agregar,
+#camara,
+#cerrarCamara{
 
     height:58px;
-
     padding:0 24px;
-
     border:none;
     border-radius:14px;
-
     background:#ff30a2;
-
     color:white;
-
     font-size:16px;
     font-weight:bold;
-
     cursor:pointer;
-
     transition:.2s;
 
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    white-space:nowrap;
 }
 
-.limpiar:hover{
-
+.limpiar:hover,
+#editar:hover,
+#editarCamara:hover,
+#agregar:hover,
+#camara:hover,
+#cerrarCamara:hover{
     transform:scale(1.03);
+}
 
+/* CONTADOR (igual estilo pero sin hover) */
+
+.contador{
+    cursor:default;
+    background:#ff30a2;
 }
 
 /* PRODUCTOS */
 
 .productos{
-
     display:grid;
-
-    grid-template-columns:
-    repeat(auto-fill,minmax(180px,1fr));
-
+    grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
     gap:20px;
 }
 
@@ -164,185 +161,490 @@ body{
     border-radius:6px;
 }
 
+/* =========================
+   RESPONSIVE DESIGN
+========================= */
+
+@media (max-width: 768px){
+
+    body{
+        padding:12px;
+    }
+
+    .titulo{
+        font-size:24px;
+        text-align:center;
+    }
+
+    .contenedor-busqueda{
+        flex-wrap:wrap;
+        gap:8px;
+    }
+
+    .buscador{
+        width:100%;
+        flex:none;
+        height:52px;
+        font-size:16px;
+    }
+
+    /* BOTONES EN MOVIL */
+    .limpiar,
+    .contador,
+    #editar,
+    #editarCamara,
+    #agregar,
+    #camara,
+    #cerrarCamara{
+        width:calc(50% - 4px);
+        height:42px;
+        font-size:13px;
+        padding:0 8px;
+    }
+
+    .productos{
+        grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+        gap:12px;
+    }
+
+    .imagen{
+        height:110px;
+    }
+
+    .precio{
+        font-size:20px;
+        padding:6px 14px;
+    }
+
+    #lector{
+        width:100% !important;
+        max-width:350px;
+    }
+}
+
+@media (max-width: 480px){
+
+    .productos{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .titulo{
+        font-size:20px;
+    }
+
+    .card{
+        padding:10px;
+    }
+
+    .nombre{
+        font-size:14px;
+    }
+
+    .codigo{
+        font-size:12px;
+    }
+
+    .precio{
+        font-size:18px;
+    }
+}
+
 </style>
 </head>
-
 <body>
 
-<div class="header">
+<div class="titulo">
+    Buscar Productos
+</div>
 
-    <div class="titulo">
-        Buscar Productos
+<div class="contenedor-busqueda">
+
+    <input
+    type="text"
+    id="buscar"
+    class="buscador"
+    placeholder="Escanee o escriba producto...">
+
+    <button
+    id="limpiar"
+    class="limpiar">
+        Borrar
+    </button>
+
+    <button
+    id="camara"
+    class="limpiar">
+        📷 Escanear
+    </button>
+
+    <div
+    id="lector"
+    style="
+    display:none;
+    width:300px;
+    margin-top:10px;
+    ">
+        <video
+        id="video"
+        style="width:100%;">
+        </video>
     </div>
 
-    <div class="contenedor-busqueda">
+    <button
+    id="cerrarCamara"
+    class="limpiar">
+        Cerrar cámara
+    </button>
 
-        <input
-        type="text"
-        id="buscar"
-        class="buscador"
-        placeholder="Escanee o escriba producto...">
+    <button
+    id="agregar"
+    class="limpiar">
+        Agregar producto
+    </button>
 
-        <button id="limpiar" class="limpiar">
-            Borrar
-        </button>
+  <button id="editar" class="limpiar">
+    Editar
+</button>
 
+<button id="editarCamara" class="limpiar">
+    📷 Editar con cámara
+</button>
+
+    <div
+    id="contadorProductos"
+    class="contador">
+        Productos: 0
     </div>
 
 </div>
 
-<div class="productos" id="productos"></div>
+<div
+class="productos"
+id="productos">
+</div>
+<script src="https://unpkg.com/@zxing/library@latest"></script>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  addDoc,
+  getDocs,
+  collection
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-/* PRODUCTOS */
+/* ================= FIREBASE ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyBEHWiEWstdu6r2D0i4S3CAu2Eyv1q9aaQ",
+  authDomain: "tienda-abarroteslamaravilla.firebaseapp.com",
+  projectId: "tienda-abarroteslamaravilla",
+  storageBucket: "tienda-abarroteslamaravilla.firebasestorage.app",
+  messagingSenderId: "1095327917170",
+  appId: "1:1095327917170:web:a3dab096621d695b6e0eeb"
+};
 
-const productos = [
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-{
-    codigo:"750004",
-    nombre:"Agua Bonafont",
-    precio:15,
-    imagen:"https://i.imgur.com/Zh8X8k8.png"
-},
-
-{
-    codigo:"750001",
-    nombre:"Coca Cola 600ml",
-    precio:18,
-    imagen:"https://i.imgur.com/5KXcQYm.png"
-},
-
-{
-    codigo:"750005",
-    nombre:"Oreo",
-    precio:25,
-    imagen:"https://i.imgur.com/eG0QY6K.png"
-},
-
-{
-    codigo:"750002",
-    nombre:"Pepsi 400ml",
-    precio:17,
-    imagen:"https://i.imgur.com/nT8FQ6Y.png"
-},
-
-{
-    codigo:"750003",
-    nombre:"Sabritas Original",
-    precio:20,
-    imagen:"https://i.imgur.com/3QX8jQS.png"
+/* SONIDO */
+function beep() {
+  const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+  audio.play();
 }
 
-];
+/* VARIABLES */
+let productos = [];
 
-/* ORDENAR */
+const contenedor = document.getElementById("productos");
+const buscar = document.getElementById("buscar");
+const limpiar = document.getElementById("limpiar");
+const camara = document.getElementById("camara");
+const cerrarCamara = document.getElementById("cerrarCamara");
+const agregar = document.getElementById("agregar");
+const editar = document.getElementById("editar");
+const editarCamara = document.getElementById("editarCamara");
+const lector = document.getElementById("lector");
 
-productos.sort((a,b)=>
-a.nombre.localeCompare(b.nombre)
-);
+let scanner = null;
 
-const contenedor =
-document.getElementById("productos");
-
-const buscar =
-document.getElementById("buscar");
-
-const limpiar =
-document.getElementById("limpiar");
-
-/* MOSTRAR */
-
+/* ================= MOSTRAR ================= */
 function mostrar(lista){
 
-    contenedor.innerHTML = "";
+  contenedor.innerHTML = "";
 
-    lista.forEach(producto=>{
+  if(lista.length === 0){
 
-        contenedor.innerHTML += `
+    const valor = buscar.value.trim();
 
-        <div class="card">
+    contenedor.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:40px;">
+        Producto no encontrado
+        <br><br>
 
-            <img
-            src="${producto.imagen}"
-            class="imagen">
+        <button id="btnAbrirAgregar">➕ Agregar producto</button>
+        <button id="btnCerrarBusqueda">❌ Cerrar</button>
+      </div>
+    `;
 
-            <div class="info">
+    document.getElementById("btnAbrirAgregar").onclick =
+      () => abrirModalAgregar(valor);
 
-                <div class="nombre">
-                    ${producto.nombre}
-                </div>
+    document.getElementById("btnCerrarBusqueda").onclick =
+      () => {
+        buscar.value = "";
+        mostrar(productos);
+      };
 
-                <div class="codigo">
-                    Código: ${producto.codigo}
-                </div>
+    return;
+  }
 
-                <div class="precio">
-                    $${producto.precio}
-                </div>
+  lista.forEach(p => {
 
-            </div>
+    contenedor.innerHTML += `
+      <div class="card">
+
+        <img src="${p.imagen || ''}" class="imagen">
+
+        <div class="info">
+
+          <div class="nombre">
+            ${p.nombre || "Sin nombre"}
+          </div>
+
+          <div class="codigo">
+            Código: ${p.codigo}
+          </div>
+
+          <div class="precio">
+            $${p.precio}
+          </div>
 
         </div>
 
-        `;
-
-    });
-
+      </div>
+    `;
+  });
 }
 
-/* MOSTRAR TODOS */
+/* ================= ABRIR EDICIÓN (REUTILIZABLE) ================= */
+function abrirEdicion(producto){
 
-mostrar(productos);
+  const nuevoNombre = prompt("Nombre", producto.nombre || "");
+  if(nuevoNombre === null) return;
 
-/* BUSCADOR */
+  const nuevoCodigo = prompt("Código", producto.codigo || "");
+  if(nuevoCodigo === null) return;
 
-buscar.addEventListener("input", ()=>{
+  const nuevoPrecio = prompt("Precio", producto.precio || "");
+  if(nuevoPrecio === null) return;
 
-    let texto =
-    buscar.value.trim().toLowerCase();
+  const nuevaImagen = prompt("Imagen", producto.imagen || "");
+  if(nuevaImagen === null) return;
 
-    /* VACÍO */
+  setDoc(doc(db, "productos", producto.id), {
+    nombre: nuevoNombre,
+    codigo: nuevoCodigo,
+    precio: Number(nuevoPrecio),
+    imagen: nuevaImagen
+  })
+  .then(() => {
+    alert("Producto actualizado");
+    cargarProductos();
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Error al actualizar");
+  });
+}
 
-    if(texto === ""){
+/* ================= BUSCAR ================= */
+function buscarProductoPorTexto(texto){
 
-        mostrar(productos);
+  texto = texto.toLowerCase().trim();
 
-        return;
-    }
+  if(/^\d+$/.test(texto)){
 
-    /* FILTRAR */
-
-    let filtrados = productos.filter(p =>
-
-        p.codigo.includes(texto)
-
-        ||
-
-        p.nombre.toLowerCase().includes(texto)
-
+    return productos.find(p =>
+      String(p.codigo) === texto
     );
 
-    mostrar(filtrados);
+  } else {
 
-});
+    return productos.find(p =>
+      (p.nombre || "").toLowerCase().includes(texto)
+    );
+  }
+}
 
-/* LIMPIAR */
+/* ================= CARGAR ================= */
+async function cargarProductos(){
 
-limpiar.addEventListener("click", ()=>{
+  const snap = await getDocs(collection(db, "productos"));
 
-    buscar.value = "";
+  productos = [];
 
+  snap.forEach(d => {
+    productos.push({ id: d.id, ...d.data() });
+  });
+
+  document.getElementById("contadorProductos").textContent =
+    `Productos: ${productos.length}`;
+
+  mostrar(productos);
+}
+
+/* ================= BUSCADOR ================= */
+buscar.addEventListener("input", () => {
+
+  const texto = buscar.value;
+
+  if(texto === ""){
     mostrar(productos);
+    return;
+  }
 
-    buscar.focus();
+  const filtrados = productos.filter(p =>
+    String(p.codigo).includes(texto) ||
+    (p.nombre || "").toLowerCase().includes(texto.toLowerCase())
+  );
 
+  mostrar(filtrados);
 });
 
-/* FOCUS */
+/* ================= LIMPIAR ================= */
+limpiar.addEventListener("click", () => {
+  buscar.value = "";
+  mostrar(productos);
+  buscar.focus();
+});
 
+/* ================= AGREGAR ================= */
+agregar.addEventListener("click", async () => {
+
+  const nombre = prompt("Nombre");
+  if(!nombre) return;
+
+  const codigo = prompt("Código");
+  if(!codigo) return;
+
+  const precio = prompt("Precio");
+  if(!precio) return;
+
+  const imagen = prompt("Imagen") || "";
+
+  await addDoc(collection(db,"productos"),{
+    nombre,
+    codigo,
+    precio:Number(precio),
+    imagen
+  });
+
+  cargarProductos();
+});
+
+/* ================= EDITAR NORMAL ================= */
+editar.addEventListener("click", async () => {
+
+  const input = prompt("Código o nombre");
+  if(!input) return;
+
+  const producto = buscarProductoPorTexto(input);
+
+  if(!producto){
+    alert("Producto no encontrado");
+    return;
+  }
+
+  abrirEdicion(producto);
+});
+
+/* ================= EDITAR CON CÁMARA ================= */
+editarCamara.addEventListener("click", async () => {
+
+  lector.style.display = "block";
+
+  if(scanner) return;
+
+  scanner = new ZXing.BrowserMultiFormatReader();
+
+  const devices = await scanner.listVideoInputDevices();
+
+  if(devices.length === 0){
+    alert("No hay cámara");
+    return;
+  }
+
+  const cameraId = devices[0].deviceId;
+
+  scanner.decodeFromVideoDevice(cameraId, "video", (result) => {
+
+    if(result){
+
+      const codigo = result.getText();
+
+      beep();
+
+      const producto = productos.find(p =>
+        String(p.codigo) === codigo
+      );
+
+      if(!producto){
+        alert("No encontrado");
+        return;
+      }
+
+      scanner.reset();
+      scanner = null;
+      lector.style.display = "none";
+
+      abrirEdicion(producto);
+    }
+  });
+});
+
+/* ================= CÁMARA NORMAL ================= */
+camara.addEventListener("click", async () => {
+
+  lector.style.display = "block";
+
+  if(scanner) return;
+
+  scanner = new ZXing.BrowserMultiFormatReader();
+
+  const devices = await scanner.listVideoInputDevices();
+
+  const cameraId = devices[0].deviceId;
+
+  scanner.decodeFromVideoDevice(cameraId, "video", (result) => {
+
+    if(result){
+
+      const codigo = result.getText();
+
+      beep();
+
+      buscar.value = codigo;
+      buscar.dispatchEvent(new Event("input"));
+    }
+  });
+});
+
+/* ================= CERRAR CÁMARA ================= */
+cerrarCamara.addEventListener("click", () => {
+
+  if(scanner){
+    scanner.reset();
+    scanner = null;
+  }
+
+  lector.style.display = "none";
+});
+
+/* INICIO */
+cargarProductos();
 buscar.focus();
-
 </script>
 
 </body>

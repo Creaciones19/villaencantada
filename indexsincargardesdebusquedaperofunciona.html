@@ -166,7 +166,6 @@ body{
 /* =========================
    RESPONSIVE DESIGN
 ========================= */
-
 @media (max-width: 768px){
 
     body{
@@ -179,20 +178,24 @@ body{
     }
 
     .contenedor-busqueda{
-        flex-direction:column;
+        display:flex;
+        flex-wrap:wrap;
+        gap:8px;
         align-items:stretch;
     }
 
     .buscador{
         width:100%;
+        flex:none;
         height:52px;
         font-size:16px;
     }
 
     .limpiar{
-        width:100%;
-        height:48px;
-        font-size:15px;
+        width:calc(50% - 4px);
+        height:42px;
+        font-size:13px;
+        padding:0 8px;
     }
 
     .productos{
@@ -211,6 +214,7 @@ body{
 
     #lector{
         width:100% !important;
+        max-width:350px;
     }
 }
 
@@ -244,11 +248,11 @@ body{
 
 </style>
 </head>
-
 <body>
-  <div class="titulo">
-        Buscar Productos
-    </div>
+
+<div class="titulo">
+    Buscar Productos
+</div>
 
 <div class="contenedor-busqueda">
 
@@ -259,23 +263,28 @@ body{
     placeholder="Escanee o escriba producto...">
 
     <button
+    id="limpiar"
+    class="limpiar">
+        Borrar
+    </button>
+
+    <button
     id="camara"
     class="limpiar">
         📷 Escanear
     </button>
-
-        <button
-    id="agregar"
-    class="limpiar">
-        Agregar producto
-</button>
-
-<button
-id="editar"
-class="limpiar">
-    Editar
-</button>
-
+<div
+id="lector"
+style="
+display:none;
+width:300px;
+margin-top:10px;
+">
+    <video
+    id="video"
+    style="width:100%;">
+    </video>
+</div>
     <button
     id="cerrarCamara"
     class="limpiar">
@@ -283,71 +292,24 @@ class="limpiar">
     </button>
 
     <button
-    id="limpiar"
+    id="agregar"
     class="limpiar">
-        Borrar
+        Agregar producto
     </button>
 
+    <button
+    id="editar"
+    class="limpiar">
+        Editar
+    </button>
 
 </div>
 
-<div
-id="lector"
-style="
-display:none;
-max-width:500px;
-margin:20px auto;
-">
 
-    <video
-    id="video"
-    style="
-    width:100%;
-    ">
-    </video>
-
-</div>
 
 <div
 class="productos"
 id="productos">
-</div>
-
-<div id="modalAgregar" style="
-display:none;
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.5);
-justify-content:center;
-align-items:center;
-">
-
-<div style="
-background:white;
-padding:20px;
-border-radius:12px;
-width:300px;
-">
-
-<h3>Agregar producto</h3>
-
-<input id="mNombre" placeholder="Nombre" style="width:100%;margin:5px 0;padding:8px;">
-<input id="mCodigo" placeholder="Código" style="width:100%;margin:5px 0;padding:8px;">
-<input id="mPrecio" placeholder="Precio" style="width:100%;margin:5px 0;padding:8px;">
-
-<button id="btnGuardarModal" style="margin-top:10px;width:100%;padding:10px;background:#ff30a2;color:white;border:none;">
-GUARDAR
-</button>
-
-<button id="btnCerrarModal" style="margin-top:10px;width:100%;padding:10px;background:#444;color:white;border:none;">
-CERRAR
-</button>
-
-</div>
-
 </div>
 <script src="https://unpkg.com/@zxing/library@latest"></script>
 
@@ -503,37 +465,46 @@ function abrirModalAgregar(valorBusqueda){
 
     let codigo = "";
     let nombre = "";
-    
-    // Detecta si parece código (solo números)
+
     if(/^\d+$/.test(valorBusqueda)){
         codigo = valorBusqueda;
-    } else {
+    }else{
         nombre = valorBusqueda;
     }
 
-    const nuevoNombre = prompt("Nombre del producto", nombre);
-    if(!nuevoNombre) return;
+    let nuevoNombre = nombre;
 
-    const nuevoCodigo = prompt("Código de barras", codigo);
-    if(!nuevoCodigo) return;
+    if(!nombre){
+        nuevoNombre = prompt("Nombre del producto");
+        if(!nuevoNombre) return;
+    }
+
+    let nuevoCodigo = codigo;
+
+    if(!codigo){
+        nuevoCodigo = prompt("Código de barras");
+        if(!nuevoCodigo) return;
+    }
 
     const nuevoPrecio = prompt("Precio");
     if(!nuevoPrecio) return;
 
-    addDoc(collection(db, "productos"), {
+    const nuevaImagen =
+    prompt("Imagen (opcional)") || "";
+
+    addDoc(collection(db,"productos"),{
         nombre: nuevoNombre,
         codigo: nuevoCodigo,
-        precio: Number(nuevoPrecio)
+        precio: Number(nuevoPrecio),
+        imagen: nuevaImagen
     })
-    .then(() => {
+    .then(()=>{
         alert("Producto agregado");
         cargarProductos();
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Error al guardar");
     });
+
 }
+
 /* CARGAR PRODUCTOS DESDE FIREBASE */
 
 async function cargarProductos(){
@@ -750,17 +721,18 @@ async ()=>{
 
     try{
 
-        await addDoc(
+    await addDoc(
 
-            collection(db, "productos"),
+    collection(db, "productos"),
 
-            {
-                nombre: nombre,
-                codigo: codigo,
-                precio: Number(precio)
-            }
+    {
+        nombre: nombre,
+        codigo: codigo,
+        precio: Number(precio),
+        imagen: imagen
+    }
 
-        );
+);
 
         alert("Producto guardado");
 
@@ -846,24 +818,34 @@ async ()=>{
     if(nuevoPrecio === null)
         return;
 
+    const nuevaImagen =
+    prompt(
+        "Imagen",
+        producto.imagen || ""
+    );
+
+    if(nuevaImagen === null)
+        return;
+
     try{
 
         await setDoc(
 
-          doc(
-    db,
-    "productos",
-    producto.id
-),
+            doc(
+                db,
+                "productos",
+                producto.id
+            ),
+
             {
                 nombre: nuevoNombre,
                 codigo: nuevoCodigo,
-                precio: Number(nuevoPrecio)
+                precio: Number(nuevoPrecio),
+                imagen: nuevaImagen
             }
 
         );
 
-     
         alert(
             "Producto actualizado"
         );

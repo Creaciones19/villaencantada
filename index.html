@@ -5,7 +5,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Productos</title>
-
 <style>
 
 *{
@@ -22,10 +21,6 @@ body{
 
 /* HEADER */
 
-.header{
-    margin-bottom:25px;
-}
-
 .titulo{
     font-size:32px;
     color:#222;
@@ -36,77 +31,79 @@ body{
 /* BUSCADOR */
 
 .contenedor-busqueda{
-
     display:flex;
     gap:12px;
     align-items:center;
-
+    flex-wrap:wrap;
 }
 
 .buscador{
-
     flex:1;
-
     height:58px;
-
     padding:0 20px;
-
     border:1px solid #ddd;
     border-radius:14px;
-
     background:white;
-
     color:#222;
-
     font-size:17px;
-
     outline:none;
-
 }
 
 .buscador:focus{
     border-color:#f5c400;
 }
 
-/* BOTÓN */
+/* =========================
+   BOTONES (UNIFICADO)
+========================= */
 
-.limpiar{
+.limpiar,
+.contador,
+#editar,
+#editarCamara,
+#agregar,
+#camara,
+#cerrarCamara{
 
     height:58px;
-
     padding:0 24px;
-
     border:none;
     border-radius:14px;
-
     background:#ff30a2;
-
     color:white;
-
     font-size:16px;
     font-weight:bold;
-
     cursor:pointer;
-
     transition:.2s;
 
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    white-space:nowrap;
 }
 
-.limpiar:hover{
-
+.limpiar:hover,
+#editar:hover,
+#editarCamara:hover,
+#agregar:hover,
+#camara:hover,
+#cerrarCamara:hover{
     transform:scale(1.03);
+}
 
+/* CONTADOR (igual estilo pero sin hover) */
+
+.contador{
+    cursor:default;
+    background:#ff30a2;
 }
 
 /* PRODUCTOS */
 
 .productos{
-
     display:grid;
-
-    grid-template-columns:
-    repeat(auto-fill,minmax(180px,1fr));
-
+    grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
     gap:20px;
 }
 
@@ -163,9 +160,11 @@ body{
     font-weight:bold;
     border-radius:6px;
 }
+
 /* =========================
    RESPONSIVE DESIGN
 ========================= */
+
 @media (max-width: 768px){
 
     body{
@@ -178,10 +177,8 @@ body{
     }
 
     .contenedor-busqueda{
-        display:flex;
         flex-wrap:wrap;
         gap:8px;
-        align-items:stretch;
     }
 
     .buscador{
@@ -191,7 +188,14 @@ body{
         font-size:16px;
     }
 
-    .limpiar{
+    /* BOTONES EN MOVIL */
+    .limpiar,
+    .contador,
+    #editar,
+    #editarCamara,
+    #agregar,
+    #camara,
+    #cerrarCamara{
         width:calc(50% - 4px);
         height:42px;
         font-size:13px;
@@ -245,7 +249,6 @@ body{
     }
 }
 
-
 </style>
 </head>
 <body>
@@ -273,18 +276,20 @@ body{
     class="limpiar">
         📷 Escanear
     </button>
-<div
-id="lector"
-style="
-display:none;
-width:300px;
-margin-top:10px;
-">
-    <video
-    id="video"
-    style="width:100%;">
-    </video>
-</div>
+
+    <div
+    id="lector"
+    style="
+    display:none;
+    width:300px;
+    margin-top:10px;
+    ">
+        <video
+        id="video"
+        style="width:100%;">
+        </video>
+    </div>
+
     <button
     id="cerrarCamara"
     class="limpiar">
@@ -297,15 +302,21 @@ margin-top:10px;
         Agregar producto
     </button>
 
-    <button
-    id="editar"
-    class="limpiar">
-        Editar
-    </button>
+  <button id="editar" class="limpiar">
+    Editar
+</button>
+
+<button id="editarCamara" class="limpiar">
+    📷 Editar con cámara
+</button>
+
+    <div
+    id="contadorProductos"
+    class="contador">
+        Productos: 0
+    </div>
 
 </div>
-
-
 
 <div
 class="productos"
@@ -313,13 +324,11 @@ id="productos">
 </div>
 <script src="https://unpkg.com/@zxing/library@latest"></script>
 
-    
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import {
   getFirestore,
   doc,
-  getDoc,
   setDoc,
   addDoc,
   getDocs,
@@ -339,558 +348,303 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
- /* AGREGA SONIDO */   
+/* SONIDO */
 function beep() {
-    const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
-    audio.play();
+  const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+  audio.play();
 }
 
-
- /* CONSTANTES A TRABAJAR */  
+/* VARIABLES */
 let productos = [];
-const contenedor =
-document.getElementById("productos");
 
-const buscar =
-document.getElementById("buscar");
-
-const limpiar =
-document.getElementById("limpiar");
-
-const camara =
-document.getElementById("camara");
-
-const cerrarCamara =
-document.getElementById("cerrarCamara");
-
-const agregar =
-document.getElementById("agregar");
-
-const editar =
-document.getElementById("editar");
-
-const lector =
-document.getElementById("lector");
-
-
-/* MOSTRAR */
-function mostrar(lista){
-
-    contenedor.innerHTML = "";
-
-    if(lista.length === 0){
-
-        const valor = buscar.value.trim();
-
-        contenedor.innerHTML = `
-            <div style="
-                grid-column:1/-1;
-                text-align:center;
-                padding:40px;
-                font-size:20px;
-                font-weight:bold;
-                color:#777;
-            ">
-                Producto no encontrado
-                <br><br>
-
-                <button id="btnAbrirAgregar" style="
-                    padding:12px 20px;
-                    border:none;
-                    background:#ff30a2;
-                    color:white;
-                    border-radius:10px;
-                    cursor:pointer;
-                    margin:5px;
-                ">
-                    ➕ Agregar producto
-                </button>
-
-                <button id="btnCerrarBusqueda" style="
-                    padding:12px 20px;
-                    border:none;
-                    background:#444;
-                    color:white;
-                    border-radius:10px;
-                    cursor:pointer;
-                    margin:5px;
-                ">
-                    ❌ Cerrar
-                </button>
-            </div>
-        `;
-
-        document.getElementById("btnAbrirAgregar").onclick = () => abrirModalAgregar(valor);
-
-        document.getElementById("btnCerrarBusqueda").onclick = () => {
-            buscar.value = "";
-            mostrar(productos);
-        };
-
-        return;
-    }
-
-    lista.forEach(producto => {
-
-        contenedor.innerHTML += `
-        <div class="card">
-
-            <img
-            src="${producto.imagen || ''}"
-            class="imagen">
-
-            <div class="info">
-
-                <div class="nombre">
-                    ${producto.nombre || producto.Nombre || "Sin nombre"}
-                </div>
-
-                <div class="codigo">
-                    Código: ${producto.codigo}
-                </div>
-
-                <div class="precio">
-                    $${producto.precio}
-                </div>
-
-            </div>
-
-        </div>
-        `;
-
-    });
-}
-//
-function abrirModalAgregar(valorBusqueda){
-
-    let codigo = "";
-    let nombre = "";
-
-    if(/^\d+$/.test(valorBusqueda)){
-        codigo = valorBusqueda;
-    }else{
-        nombre = valorBusqueda;
-    }
-
-    let nuevoNombre = nombre;
-
-    if(!nombre){
-        nuevoNombre = prompt("Nombre del producto");
-        if(!nuevoNombre) return;
-    }
-
-    let nuevoCodigo = codigo;
-
-    if(!codigo){
-        nuevoCodigo = prompt("Código de barras");
-        if(!nuevoCodigo) return;
-    }
-
-    const nuevoPrecio = prompt("Precio");
-    if(!nuevoPrecio) return;
-
-    const nuevaImagen =
-    prompt("Imagen (opcional)") || "";
-
-    addDoc(collection(db,"productos"),{
-        nombre: nuevoNombre,
-        codigo: nuevoCodigo,
-        precio: Number(nuevoPrecio),
-        imagen: nuevaImagen
-    })
-    .then(()=>{
-        alert("Producto agregado");
-        cargarProductos();
-    });
-
-}
-
-/* CARGAR PRODUCTOS DESDE FIREBASE */
-
-async function cargarProductos(){
-
-    try{
-
-        const querySnapshot =
-        await getDocs(
-            collection(db, "productos")
-        );
-
-        productos = [];
-
-        querySnapshot.forEach((docSnap)=>{
-
-            productos.push({
-                id: docSnap.id,
-                ...docSnap.data()
-            });
-
-        });
-        productos.sort((a,b)=>
-            (a.nombre || a.Nombre || "").localeCompare(b.nombre || b.Nombre || "")
-        );
-
-        mostrar(productos);
-
-    }
-
-    catch(error){
-
-        console.error(error);
-
-        alert(
-            "Error cargando productos desde Firebase"
-        );
-
-    }
-
-}
-/* BUSCADOR */
-
-buscar.addEventListener(
-"input",
-()=>{
-
-    const texto =
-    buscar.value
-    .trim()
-    .toLowerCase();
-
-    if(texto === ""){
-
-        mostrar(productos);
-
-        return;
-
-    }
-
-    const filtrados =
-    productos.filter(p=>
-
-        String(p.codigo)
-        .toLowerCase()
-        .includes(texto)
-
-        ||
-
-      (p.nombre || p.Nombre || "")
-.toLowerCase()
-.includes(texto)
-    );
-
-    mostrar(filtrados);
-
-});
-
-/* LIMPIAR */
-
-/* LIMPIAR */
-
-limpiar.addEventListener(
-"click",
-()=>{
-
-    buscar.value = "";
-
-    mostrar(productos);
-
-    buscar.focus();
-
-});
+const contenedor = document.getElementById("productos");
+const buscar = document.getElementById("buscar");
+const limpiar = document.getElementById("limpiar");
+const camara = document.getElementById("camara");
+const cerrarCamara = document.getElementById("cerrarCamara");
+const agregar = document.getElementById("agregar");
+const editar = document.getElementById("editar");
+const editarCamara = document.getElementById("editarCamara");
+const lector = document.getElementById("lector");
 
 let scanner = null;
 
+/* ================= MOSTRAR ================= */
+function mostrar(lista){
+
+  contenedor.innerHTML = "";
+
+  if(lista.length === 0){
+
+    const valor = buscar.value.trim();
+
+    contenedor.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:40px;">
+        Producto no encontrado
+        <br><br>
+
+        <button id="btnAbrirAgregar">➕ Agregar producto</button>
+        <button id="btnCerrarBusqueda">❌ Cerrar</button>
+      </div>
+    `;
+
+    document.getElementById("btnAbrirAgregar").onclick =
+      () => abrirModalAgregar(valor);
+
+    document.getElementById("btnCerrarBusqueda").onclick =
+      () => {
+        buscar.value = "";
+        mostrar(productos);
+      };
+
+    return;
+  }
+
+  lista.forEach(p => {
+
+    contenedor.innerHTML += `
+      <div class="card">
+
+        <img src="${p.imagen || ''}" class="imagen">
+
+        <div class="info">
+
+          <div class="nombre">
+            ${p.nombre || "Sin nombre"}
+          </div>
+
+          <div class="codigo">
+            Código: ${p.codigo}
+          </div>
+
+          <div class="precio">
+            $${p.precio}
+          </div>
+
+        </div>
+
+      </div>
+    `;
+  });
+}
+
+/* ================= ABRIR EDICIÓN (REUTILIZABLE) ================= */
+function abrirEdicion(producto){
+
+  const nuevoNombre = prompt("Nombre", producto.nombre || "");
+  if(nuevoNombre === null) return;
+
+  const nuevoCodigo = prompt("Código", producto.codigo || "");
+  if(nuevoCodigo === null) return;
+
+  const nuevoPrecio = prompt("Precio", producto.precio || "");
+  if(nuevoPrecio === null) return;
+
+  const nuevaImagen = prompt("Imagen", producto.imagen || "");
+  if(nuevaImagen === null) return;
+
+  setDoc(doc(db, "productos", producto.id), {
+    nombre: nuevoNombre,
+    codigo: nuevoCodigo,
+    precio: Number(nuevoPrecio),
+    imagen: nuevaImagen
+  })
+  .then(() => {
+    alert("Producto actualizado");
+    cargarProductos();
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Error al actualizar");
+  });
+}
+
+/* ================= BUSCAR ================= */
+function buscarProductoPorTexto(texto){
+
+  texto = texto.toLowerCase().trim();
+
+  if(/^\d+$/.test(texto)){
+
+    return productos.find(p =>
+      String(p.codigo) === texto
+    );
+
+  } else {
+
+    return productos.find(p =>
+      (p.nombre || "").toLowerCase().includes(texto)
+    );
+  }
+}
+
+/* ================= CARGAR ================= */
+async function cargarProductos(){
+
+  const snap = await getDocs(collection(db, "productos"));
+
+  productos = [];
+
+  snap.forEach(d => {
+    productos.push({ id: d.id, ...d.data() });
+  });
+
+  document.getElementById("contadorProductos").textContent =
+    `Productos: ${productos.length}`;
+
+  mostrar(productos);
+}
+
+/* ================= BUSCADOR ================= */
+buscar.addEventListener("input", () => {
+
+  const texto = buscar.value;
+
+  if(texto === ""){
+    mostrar(productos);
+    return;
+  }
+
+  const filtrados = productos.filter(p =>
+    String(p.codigo).includes(texto) ||
+    (p.nombre || "").toLowerCase().includes(texto.toLowerCase())
+  );
+
+  mostrar(filtrados);
+});
+
+/* ================= LIMPIAR ================= */
+limpiar.addEventListener("click", () => {
+  buscar.value = "";
+  mostrar(productos);
+  buscar.focus();
+});
+
+/* ================= AGREGAR ================= */
+agregar.addEventListener("click", async () => {
+
+  const nombre = prompt("Nombre");
+  if(!nombre) return;
+
+  const codigo = prompt("Código");
+  if(!codigo) return;
+
+  const precio = prompt("Precio");
+  if(!precio) return;
+
+  const imagen = prompt("Imagen") || "";
+
+  await addDoc(collection(db,"productos"),{
+    nombre,
+    codigo,
+    precio:Number(precio),
+    imagen
+  });
+
+  cargarProductos();
+});
+
+/* ================= EDITAR NORMAL ================= */
+editar.addEventListener("click", async () => {
+
+  const input = prompt("Código o nombre");
+  if(!input) return;
+
+  const producto = buscarProductoPorTexto(input);
+
+  if(!producto){
+    alert("Producto no encontrado");
+    return;
+  }
+
+  abrirEdicion(producto);
+});
+
+/* ================= EDITAR CON CÁMARA ================= */
+editarCamara.addEventListener("click", async () => {
+
+  lector.style.display = "block";
+
+  if(scanner) return;
+
+  scanner = new ZXing.BrowserMultiFormatReader();
+
+  const devices = await scanner.listVideoInputDevices();
+
+  if(devices.length === 0){
+    alert("No hay cámara");
+    return;
+  }
+
+  const cameraId = devices[0].deviceId;
+
+  scanner.decodeFromVideoDevice(cameraId, "video", (result) => {
+
+    if(result){
+
+      const codigo = result.getText();
+
+      beep();
+
+      const producto = productos.find(p =>
+        String(p.codigo) === codigo
+      );
+
+      if(!producto){
+        alert("No encontrado");
+        return;
+      }
+
+      scanner.reset();
+      scanner = null;
+      lector.style.display = "none";
+
+      abrirEdicion(producto);
+    }
+  });
+});
+
+/* ================= CÁMARA NORMAL ================= */
 camara.addEventListener("click", async () => {
 
-    try{
+  lector.style.display = "block";
 
-        lector.style.display = "block";
+  if(scanner) return;
 
-        if(scanner) return;
+  scanner = new ZXing.BrowserMultiFormatReader();
 
-        scanner =
-        new ZXing.BrowserMultiFormatReader();
+  const devices = await scanner.listVideoInputDevices();
 
-        const devices =
-        await scanner.listVideoInputDevices();
+  const cameraId = devices[0].deviceId;
 
-        if(devices.length === 0){
+  scanner.decodeFromVideoDevice(cameraId, "video", (result) => {
 
-            alert("No hay cámara");
+    if(result){
 
-            return;
+      const codigo = result.getText();
 
-        }
+      beep();
 
-        let cameraId =
-        devices[devices.length - 1].deviceId;
-
-        scanner.decodeFromVideoDevice(
-
-            cameraId,
-
-            "video",
-
-            (result,error)=>{
-
-                if(result){
-
-                    const codigo =
-                    result.getText();
-
-                    console.log(
-                        "DETECTADO:",
-                        codigo
-                    );
-
-                    beep();
-
-                    navigator.vibrate?.(100);
-
-                    buscar.value =
-                    codigo;
-
-                    buscar.dispatchEvent(
-                        new Event("input")
-                    );
-
-                }
-
-            }
-
-        );
-
+      buscar.value = codigo;
+      buscar.dispatchEvent(new Event("input"));
     }
-
-    catch(error){
-
-        console.error(error);
-
-        alert(error.message);
-
-    }
-
-});
-/*CERRAR CAMARA */
-cerrarCamara.addEventListener(
-"click",
-()=>{
-
-    if(scanner){
-
-        scanner.reset();
-
-        scanner = null;
-
-    }
-
-    lector.style.display =
-    "none";
-
+  });
 });
 
+/* ================= CERRAR CÁMARA ================= */
+cerrarCamara.addEventListener("click", () => {
 
+  if(scanner){
+    scanner.reset();
+    scanner = null;
+  }
 
-
-/* AGREGAR PRODUCTO*/
-agregar.addEventListener(
-"click",
-async ()=>{
-
-    const nombre =
-    prompt("Nombre del producto");
-
-    if(!nombre) return;
-
-    const codigo =
-    prompt("Código de barras");
-
-    if(!codigo) return;
-
-    const precio =
-    prompt("Precio");
-
-    if(!precio) return;
-
-    const imagen =
-    prompt(
-        "Nombre de la imagen (ejemplo: cocacola600ml.webp)"
-    );
-
-    if(!imagen) return;
-
-    try{
-
-    await addDoc(
-
-    collection(db, "productos"),
-
-    {
-        nombre: nombre,
-        codigo: codigo,
-        precio: Number(precio),
-        imagen: imagen
-    }
-
-);
-
-        alert("Producto guardado");
-
-        cargarProductos();
-
-    }
-
-    catch(error){
-
-        console.error(error);
-
-        alert("Error guardando producto");
-
-    }
-
-});
-/* EDITAR */
-editar.addEventListener(
-"click",
-async ()=>{
-
-    const buscarProducto =
-    prompt(
-        "Escribe código o nombre"
-    );
-
-    if(!buscarProducto) return;
-
-    const texto =
-    buscarProducto
-    .toLowerCase()
-    .trim();
-
-    const producto =
-    productos.find(p =>
-
-        String(p.codigo)
-        .toLowerCase()
-        .includes(texto)
-
-        ||
-
-        (p.nombre || p.Nombre || "")
-        .toLowerCase()
-        .includes(texto)
-
-    );
-
-    if(!producto){
-
-        alert(
-            "Producto no encontrado"
-        );
-
-        return;
-
-    }
-
-    const nuevoNombre =
-    prompt(
-        "Nombre",
-        producto.nombre || producto.Nombre || ""
-    );
-
-    if(nuevoNombre === null)
-        return;
-
-    const nuevoCodigo =
-    prompt(
-        "Código",
-        producto.codigo
-    );
-
-    if(nuevoCodigo === null)
-        return;
-
-    const nuevoPrecio =
-    prompt(
-        "Precio",
-        producto.precio
-    );
-
-    if(nuevoPrecio === null)
-        return;
-
-    const nuevaImagen =
-    prompt(
-        "Imagen",
-        producto.imagen || ""
-    );
-
-    if(nuevaImagen === null)
-        return;
-
-    try{
-
-        await setDoc(
-
-            doc(
-                db,
-                "productos",
-                producto.id
-            ),
-
-            {
-                nombre: nuevoNombre,
-                codigo: nuevoCodigo,
-                precio: Number(nuevoPrecio),
-                imagen: nuevaImagen
-            }
-
-        );
-
-        alert(
-            "Producto actualizado"
-        );
-
-        cargarProductos();
-
-    }
-
-    catch(error){
-
-        console.error(error);
-
-        alert(
-            "Error al actualizar"
-        );
-
-    }
-
+  lector.style.display = "none";
 });
 
-/* INICIAR */
-
+/* INICIO */
 cargarProductos();
-
 buscar.focus();
-
-/* SIEMPRE LISTO PARA PISTOLA */
-
-document.addEventListener(
-"click",
-()=>{
-
-    buscar.focus();
-
-}
-);
-
-window.addEventListener(
-"load",
-()=>{
-
-    buscar.focus();
-
-}
-);
 </script>
 
 </body>
