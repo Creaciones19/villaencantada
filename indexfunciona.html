@@ -70,7 +70,8 @@ body{
 
 /* BOTÓN */
 
-.limpiar{
+.limpiar,
+.contador{
 
     height:58px;
 
@@ -86,7 +87,13 @@ body{
     font-size:16px;
     font-weight:bold;
 
-    cursor:pointer;
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    white-space:nowrap;
 
     transition:.2s;
 
@@ -219,7 +226,7 @@ body{
 }
 
 @media (max-width: 480px){
-
+ 
     .productos{
         grid-template-columns:repeat(2,1fr);
     }
@@ -244,7 +251,6 @@ body{
         font-size:18px;
     }
 }
-
 
 </style>
 </head>
@@ -295,17 +301,21 @@ margin-top:10px;
     id="agregar"
     class="limpiar">
         Agregar producto
-    </button>
+</button>
 
-    <button
+<button
     id="editar"
     class="limpiar">
         Editar
-    </button>
+</button>
 
+<div
+    id="contadorProductos"
+    class="contador">
+    Productos: 0
 </div>
 
-
+</div>
 
 <div
 class="productos"
@@ -526,11 +536,17 @@ async function cargarProductos(){
             });
 
         });
-        productos.sort((a,b)=>
-            (a.nombre || a.Nombre || "").localeCompare(b.nombre || b.Nombre || "")
-        );
+      productos.sort((a,b)=>
+    (a.nombre || a.Nombre || "").localeCompare(b.nombre || b.Nombre || "")
+);
 
-        mostrar(productos);
+/* ACTUALIZAR CONTADOR */
+const contador = document.getElementById("contadorProductos");
+if(contador){
+    contador.textContent = "Productos: " + productos.length;
+}
+
+mostrar(productos);
 
     }
 
