@@ -404,6 +404,7 @@ function beep() {
 let productos = [];
 let modoScanner = "";
 let procesandoCodigo = false;
+
 const contenedor =
 document.getElementById("productos");
 
@@ -569,41 +570,36 @@ async function cargarProductos(){
     try{
 
         const querySnapshot =
-        await getDocs(
-            collection(db, "productos")
-        );
+        await getDocs(collection(db, "productos"));
 
         productos = [];
 
         querySnapshot.forEach((docSnap)=>{
-
             productos.push({
                 id: docSnap.id,
                 ...docSnap.data()
             });
-
         });
-      productos.sort((a,b)=>
-    (a.nombre || a.Nombre || "").localeCompare(b.nombre || b.Nombre || "")
-);
 
-/* ACTUALIZAR CONTADOR */
-actualizarContador();
-
-mostrar(productos);
-
-    }
-
-    catch(error){
-
-        console.error(error);
-
-        alert(
-            "Error cargando productos desde Firebase"
+        // ordenar (ok aquí)
+        productos.sort((a,b)=>
+            (a.nombre || a.Nombre || "")
+            .localeCompare(b.nombre || b.Nombre || "")
         );
 
-    }
+        actualizarContador();
 
+        // 🔥 IMPORTANTE: render en segundo plano por bloques
+        requestAnimationFrame(() => {
+            renderLento(productos);
+        });
+
+    } catch(error){
+
+        console.error(error);
+        alert("Error cargando productos desde Firebase");
+
+    }
 }
 /* BUSCADOR */
 
@@ -662,6 +658,8 @@ limpiar.addEventListener(
 
 });
 
+/* CAMARA*/
+
 let scanner = null;
 camara.addEventListener("click", async () => {
 
@@ -694,36 +692,71 @@ camara.addEventListener("click", async () => {
                     beep();
                     navigator.vibrate?.(100);
 
-                    // 🔥 EDITAR POR CÁMARA
+
+                    // 🔥 EDITAR
                     if (modoScanner === "editar") {
 
                         modoScanner = "";
+
+                        controls?.stop(); // 👈 CIERRA CÁMARA BIEN
+
                         cerrarCamara.click();
+
                         editarProducto(codigo);
+
                         return;
                     }
 
-                    // 🔥 ELIMINAR POR CÁMARA
+                    // 🔥 ELIMINAR
                     if (modoScanner === "eliminar") {
 
                         modoScanner = "";
+
+                        controls?.stop();
+
                         cerrarCamara.click();
+
                         eliminarProducto(codigo);
+
                         return;
                     }
 
-                    // 🔥 SOLO BUSCAR NORMAL
+                    // 🔥 BUSCAR NORMAL
                     buscar.value = codigo;
                     buscar.dispatchEvent(new Event("input"));
                 }
+
+                // errores normales del scanner (NO críticos)
+                // if (error) console.warn(error);
             }
         );
 
     } catch (error) {
-        console.error(error);
+        console.error("Error cámara:", error);
         alert(error.message);
     }
 });
+
+
+
+/*CERRAR CAMARA */
+cerrarCamara.addEventListener(
+"click",
+()=>{
+
+    if(scanner){
+
+        scanner.reset();
+
+        scanner = null;
+
+    }
+
+    lector.style.display =
+    "none";
+
+});
+
 
 /* AGREGAR PRODUCTO*/
 agregar.addEventListener(
@@ -1063,6 +1096,56 @@ async ()=>{
     eliminarProducto(buscarProducto);
 
 });
+
+
+function renderLento(lista){
+
+    contenedor.innerHTML = "";
+
+    let i = 0;
+    const chunk = 20; // cantidad por bloque
+
+    function pintar(){
+
+        const fragment = document.createDocumentFragment();
+
+        for(let j = 0; j < chunk && i < lista.length; j++, i++){
+
+            const producto = lista[i];
+
+            const div = document.createElement("div");
+            div.className = "card";
+
+            div.innerHTML = `
+                <img src="${producto.imagen || ''}" class="imagen">
+
+                <div class="info">
+                    <div class="nombre">
+                        ${producto.nombre || producto.Nombre || "Sin nombre"}
+                    </div>
+
+                    <div class="codigo">
+                        Código: ${producto.codigo}
+                    </div>
+
+                    <div class="precio">
+                        $${producto.precio}
+                    </div>
+                </div>
+            `;
+
+            fragment.appendChild(div);
+        }
+
+        contenedor.appendChild(fragment);
+
+        if(i < lista.length){
+            requestAnimationFrame(pintar);
+        }
+    }
+
+    pintar();
+}
 </script>
 
 </body>
