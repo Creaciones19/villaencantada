@@ -617,6 +617,7 @@ limpiar.addEventListener(
 });
 
 let scanner = null;
+
 camara.addEventListener("click", async () => {
 
     try {
@@ -627,15 +628,18 @@ camara.addEventListener("click", async () => {
 
         scanner = new ZXing.BrowserMultiFormatReader();
 
-        // 🔥 FORZAR CÁMARA TRASERA (ESTO ES LA CLAVE)
-        const constraints = {
-            video: {
-                facingMode: { ideal: "environment" }
-            }
-        };
+        const devices = await scanner.listVideoInputDevices();
 
-        scanner.decodeFromConstraints(
-            constraints,
+        if (!devices.length) {
+            alert("No hay cámara");
+            return;
+        }
+
+        // 🔥 igual que tu base pero más seguro
+        let cameraId = devices[devices.length - 1].deviceId;
+
+        scanner.decodeFromVideoDevice(
+            cameraId,
             "video",
             (result, error) => {
 
@@ -651,7 +655,6 @@ camara.addEventListener("click", async () => {
                     buscar.value = codigo;
                     buscar.dispatchEvent(new Event("input"));
 
-                    // ⚠️ IMPORTANTE: NO destruir scanner de inmediato
                     scanner.reset();
                     scanner = null;
 
@@ -667,25 +670,6 @@ camara.addEventListener("click", async () => {
 
     }
 });
-/*CERRAR CAMARA */
-cerrarCamara.addEventListener(
-"click",
-()=>{
-
-    if(scanner){
-
-        scanner.reset();
-
-        scanner = null;
-
-    }
-
-    lector.style.display =
-    "none";
-
-});
-
-
 
 
 /* AGREGAR PRODUCTO*/
