@@ -288,6 +288,17 @@ class="limpiar">
         Borrar
     </button>
 
+    <button id="eliminar" class="limpiar">
+    Eliminar producto
+</button>
+
+
+   <button
+    id="contador"
+    class="limpiar">
+        contador
+    </button>
+
 
 </div>
 
@@ -362,6 +373,7 @@ import {
   setDoc,
   addDoc,
   getDocs,
+  deleteDoc,
   collection
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
@@ -375,6 +387,9 @@ const firebaseConfig = {
   appId: "1:1095327917170:web:a3dab096621d695b6e0eeb"
 };
 
+const eliminar =
+document.getElementById("eliminar");
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -387,6 +402,9 @@ function beep() {
 
  /* CONSTANTES A TRABAJAR */  
 let productos = [];
+let modoScanner = "";
+let procesandoCodigo = false;
+let scanner = null;
 const contenedor =
 document.getElementById("productos");
 
@@ -411,6 +429,7 @@ document.getElementById("editar");
 const lector =
 document.getElementById("lector");
 
+const contador = document.getElementById("contador");
 
 /* MOSTRAR */
 function mostrar(lista){
@@ -504,7 +523,7 @@ function abrirModalAgregar(valorBusqueda){
 
     let codigo = "";
     let nombre = "";
-
+    
     if(/^\d+$/.test(valorBusqueda)){
         codigo = valorBusqueda;
     }else{
@@ -551,38 +570,36 @@ async function cargarProductos(){
     try{
 
         const querySnapshot =
-        await getDocs(
-            collection(db, "productos")
-        );
+        await getDocs(collection(db, "productos"));
 
         productos = [];
 
         querySnapshot.forEach((docSnap)=>{
-
             productos.push({
                 id: docSnap.id,
                 ...docSnap.data()
             });
-
         });
+
+        // ordenar (ok aquí)
         productos.sort((a,b)=>
-            (a.nombre || a.Nombre || "").localeCompare(b.nombre || b.Nombre || "")
+            (a.nombre || a.Nombre || "")
+            .localeCompare(b.nombre || b.Nombre || "")
         );
 
-        mostrar(productos);
+        actualizarContador();
 
-    }
+        // 🔥 IMPORTANTE: render en segundo plano por bloques
+        requestAnimationFrame(() => {
+            renderLento(productos);
+        });
 
-    catch(error){
+    } catch(error){
 
         console.error(error);
-
-        alert(
-            "Error cargando productos desde Firebase"
-        );
+        alert("Error cargando productos desde Firebase");
 
     }
-
 }
 /* BUSCADOR */
 
@@ -603,21 +620,25 @@ buscar.addEventListener(
 
     }
 
-    const filtrados =
-    productos.filter(p=>
+const filtrados =
+productos.filter(p =>
 
-        String(p.codigo)
+    String(p.codigo)
         .toLowerCase()
         .includes(texto)
 
-        ||
+    ||
 
-      (p.nombre || p.Nombre || "")
-.toLowerCase()
-.includes(texto)
-    );
+    (p.nombre || p.Nombre || "")
+        .toLowerCase()
+        .includes(texto)
 
-    mostrar(filtrados);
+);
+
+mostrar(filtrados);
+
+/* ACTUALIZAR CONTADOR */
+actualizarContador();
 
 });
 
@@ -637,79 +658,88 @@ limpiar.addEventListener(
 
 });
 
-let scanner = null;
+/* CAMARA*/
+
+
+let controls = null;
 
 camara.addEventListener("click", async () => {
 
-    try{
+    try {
 
         lector.style.display = "block";
 
-        if(scanner) return;
+        if (controls) return;
 
-        scanner =
-        new ZXing.BrowserMultiFormatReader();
+      scanner = new window.ZXing.BrowserMultiFormatReader();
 
-        const devices =
-        await scanner.listVideoInputDevices();
+        const devices = await scanner.listVideoInputDevices();
 
-        if(devices.length === 0){
-
+        if (!devices.length) {
             alert("No hay cámara");
-
             return;
-
         }
 
-        let cameraId =
-        devices[devices.length - 1].deviceId;
+        const cameraId = devices[devices.length - 1].deviceId;
 
-        scanner.decodeFromVideoDevice(
-
+        controls = await scanner.decodeFromVideoDevice(
             cameraId,
-
             "video",
+            (result, error) => {
 
-            (result,error)=>{
+                if (result) {
 
-                if(result){
-
-                    const codigo =
-                    result.getText();
-
-                    console.log(
-                        "DETECTADO:",
-                        codigo
-                    );
+                    const codigo = result.getText();
 
                     beep();
-
                     navigator.vibrate?.(100);
 
-                    buscar.value =
-                    codigo;
+                    // 🔥 EDITAR
+                    if (modoScanner === "editar") {
 
-                    buscar.dispatchEvent(
-                        new Event("input")
-                    );
+                        modoScanner = "";
 
+                        controls?.stop(); // 👈 CIERRA CÁMARA BIEN
+
+                        cerrarCamara.click();
+
+                        editarProducto(codigo);
+
+                        return;
+                    }
+
+                    // 🔥 ELIMINAR
+                    if (modoScanner === "eliminar") {
+
+                        modoScanner = "";
+
+                        controls?.stop();
+
+                        cerrarCamara.click();
+
+                        eliminarProducto(codigo);
+
+                        return;
+                    }
+
+                    // 🔥 BUSCAR NORMAL
+                    buscar.value = codigo;
+                    buscar.dispatchEvent(new Event("input"));
                 }
 
+                // errores normales del scanner (NO críticos)
+                // if (error) console.warn(error);
             }
-
         );
 
-    }
-
-    catch(error){
-
-        console.error(error);
-
+    } catch (error) {
+        console.error("Error cámara:", error);
         alert(error.message);
-
     }
-
 });
+
+
+/* CIERRE DE CAMARA/
 /*CERRAR CAMARA */
 cerrarCamara.addEventListener(
 "click",
@@ -727,8 +757,6 @@ cerrarCamara.addEventListener(
     "none";
 
 });
-
-
 
 
 /* AGREGAR PRODUCTO*/
@@ -792,6 +820,22 @@ async ()=>{
 editar.addEventListener(
 "click",
 async ()=>{
+    const op =
+prompt(
+"1 = Escanear\n2 = Escribir"
+);
+
+if(!op) return;
+
+if(op == "1"){
+
+    modoScanner = "editar";
+
+    camara.click();
+
+    return;
+
+}
 
     const buscarProducto =
     prompt(
@@ -930,6 +974,179 @@ window.addEventListener(
 
 }
 );
+
+/* FUNCION PARA CONTADOR*/
+/* FUNCION PARA CONTADOR*/
+function actualizarContador(){
+    if(contador){
+        contador.textContent = "Productos: " + productos.length;
+    }
+}
+
+/* EDITAR POR CÓDIGO (ESCÁNER O TEXTO) */
+async function editarProducto(codigo){
+
+    const producto = productos.find(p =>
+        String(p.codigo) === String(codigo)
+    );
+
+    if(!producto){
+        alert("Producto no encontrado");
+        return;
+    }
+
+    const nuevoNombre = prompt("Nombre", producto.nombre || producto.Nombre || "");
+    if(nuevoNombre === null) return;
+
+    const nuevoCodigo = prompt("Código", producto.codigo);
+    if(nuevoCodigo === null) return;
+
+    const nuevoPrecio = prompt("Precio", producto.precio);
+    if(nuevoPrecio === null) return;
+
+    const nuevaImagen = prompt("Imagen", producto.imagen || "");
+    if(nuevaImagen === null) return;
+
+    try{
+
+        await setDoc(
+            doc(db,"productos",producto.id),
+            {
+                nombre: nuevoNombre,
+                codigo: nuevoCodigo,
+                precio: Number(nuevoPrecio),
+                imagen: nuevaImagen
+            }
+        );
+
+        alert("Producto actualizado");
+
+        cargarProductos();
+
+    }catch(error){
+
+        console.error(error);
+        alert("Error al actualizar");
+
+    }
+
+}
+
+/* ELIMINAR POR CÓDIGO (ESCÁNER O TEXTO) */
+async function eliminarProducto(codigo){
+
+    const producto = productos.find(p =>
+        String(p.codigo) === String(codigo)
+    );
+
+    if(!producto){
+        alert("Producto no encontrado");
+        return;
+    }
+
+    if(!confirm(`¿Eliminar "${producto.nombre || producto.Nombre}"?`)){
+        return;
+    }
+
+    try{
+
+        await deleteDoc(
+            doc(db,"productos",producto.id)
+        );
+
+        alert("Producto eliminado");
+
+        cargarProductos();
+
+    }catch(error){
+
+        console.error(error);
+        alert("Error al eliminar");
+
+    }
+
+}
+/* ELIMINAR PRODUCTO */
+
+eliminar.addEventListener(
+"click",
+async ()=>{
+
+    const op =
+    prompt(
+        "1 = Escanear\n2 = Escribir"
+    );
+
+    if(!op) return;
+
+    if(op == "1"){
+
+        modoScanner = "eliminar";
+
+        camara.click();
+
+        return;
+
+    }
+
+    const buscarProducto =
+    prompt("Escriba el código o nombre del producto");
+
+    if(!buscarProducto) return;
+
+    eliminarProducto(buscarProducto);
+
+});
+
+
+function renderLento(lista){
+
+    contenedor.innerHTML = "";
+
+    let i = 0;
+    const chunk = 20; // cantidad por bloque
+
+    function pintar(){
+
+        const fragment = document.createDocumentFragment();
+
+        for(let j = 0; j < chunk && i < lista.length; j++, i++){
+
+            const producto = lista[i];
+
+            const div = document.createElement("div");
+            div.className = "card";
+
+            div.innerHTML = `
+                <img src="${producto.imagen || ''}" class="imagen">
+
+                <div class="info">
+                    <div class="nombre">
+                        ${producto.nombre || producto.Nombre || "Sin nombre"}
+                    </div>
+
+                    <div class="codigo">
+                        Código: ${producto.codigo}
+                    </div>
+
+                    <div class="precio">
+                        $${producto.precio}
+                    </div>
+                </div>
+            `;
+
+            fragment.appendChild(div);
+        }
+
+        contenedor.appendChild(fragment);
+
+        if(i < lista.length){
+            requestAnimationFrame(pintar);
+        }
+    }
+
+    pintar();
+}
 </script>
 
 </body>
