@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -329,13 +330,14 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/fireba
 import {
   getFirestore,
   doc,
+  getDoc,
   setDoc,
   addDoc,
   getDocs,
   collection
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-/* FIREBASE */
+/* ================= FIREBASE ================= */
 const firebaseConfig = {
   apiKey: "AIzaSyBEHWiEWstdu6r2D0i4S3CAu2Eyv1q9aaQ",
   authDomain: "tienda-abarroteslamaravilla.firebaseapp.com",
@@ -348,202 +350,476 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* SONIDO */
+ /* AGREGA SONIDO */   
 function beep() {
-  const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
-  audio.play();
+    const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+    audio.play();
 }
 
-/* VARIABLES */
+
+ /* CONSTANTES A TRABAJAR */  
 let productos = [];
-let scanner = null;
+const contenedor =
+document.getElementById("productos");
 
-const contenedor = document.getElementById("productos");
-const buscar = document.getElementById("buscar");
-const limpiar = document.getElementById("limpiar");
-const camara = document.getElementById("camara");
-const cerrarCamara = document.getElementById("cerrarCamara");
-const agregar = document.getElementById("agregar");
-const editar = document.getElementById("editar");
-const lector = document.getElementById("lector");
+const buscar =
+document.getElementById("buscar");
 
+const limpiar =
+document.getElementById("limpiar");
+
+const camara =
+document.getElementById("camara");
+
+const cerrarCamara =
+document.getElementById("cerrarCamara");
+
+const agregar =
+document.getElementById("agregar");
+
+const editar =
+document.getElementById("editar");
+
+const lector =
+document.getElementById("lector");
+
+/* Let modo editar */
+
+let modoEdicion = false;
 /* MOSTRAR */
 function mostrar(lista){
-  contenedor.innerHTML = "";
 
-  lista.forEach(p=>{
-    contenedor.innerHTML += `
-      <div class="card">
-        <img src="${p.imagen || ''}" class="imagen">
-        <div class="info">
-          <div class="nombre">${p.nombre}</div>
-          <div class="codigo">${p.codigo}</div>
-          <div class="precio">$${p.precio}</div>
+    contenedor.innerHTML = "";
+
+    if(lista.length === 0){
+
+        const valor = buscar.value.trim();
+
+        contenedor.innerHTML = `
+            <div style="
+                grid-column:1/-1;
+                text-align:center;
+                padding:40px;
+                font-size:20px;
+                font-weight:bold;
+                color:#777;
+            ">
+                Producto no encontrado
+                <br><br>
+
+                <button id="btnAbrirAgregar" style="
+                    padding:12px 20px;
+                    border:none;
+                    background:#ff30a2;
+                    color:white;
+                    border-radius:10px;
+                    cursor:pointer;
+                    margin:5px;
+                ">
+                    ➕ Agregar producto
+                </button>
+
+                <button id="btnCerrarBusqueda" style="
+                    padding:12px 20px;
+                    border:none;
+                    background:#444;
+                    color:white;
+                    border-radius:10px;
+                    cursor:pointer;
+                    margin:5px;
+                ">
+                    ❌ Cerrar
+                </button>
+            </div>
+        `;
+
+        document.getElementById("btnAbrirAgregar").onclick = () => abrirModalAgregar(valor);
+
+        document.getElementById("btnCerrarBusqueda").onclick = () => {
+            buscar.value = "";
+            mostrar(productos);
+        };
+
+        return;
+    }
+
+    lista.forEach(producto => {
+
+        contenedor.innerHTML += `
+        <div class="card">
+
+            <img
+            src="${producto.imagen || ''}"
+            class="imagen">
+
+            <div class="info">
+
+                <div class="nombre">
+                    ${producto.nombre || producto.Nombre || "Sin nombre"}
+                </div>
+
+                <div class="codigo">
+                    Código: ${producto.codigo}
+                </div>
+
+                <div class="precio">
+                    $${producto.precio}
+                </div>
+
+            </div>
+
         </div>
-      </div>
-    `;
-  });
+        `;
+
+    });
+}
+//
+function abrirModalAgregar(valorBusqueda){
+
+    let codigo = "";
+    let nombre = "";
+
+    if(/^\d+$/.test(valorBusqueda)){
+        codigo = valorBusqueda;
+    }else{
+        nombre = valorBusqueda;
+    }
+
+    let nuevoNombre = nombre;
+
+    if(!nombre){
+        nuevoNombre = prompt("Nombre del producto");
+        if(!nuevoNombre) return;
+    }
+
+    let nuevoCodigo = codigo;
+
+    if(!codigo){
+        nuevoCodigo = prompt("Código de barras");
+        if(!nuevoCodigo) return;
+    }
+
+    const nuevoPrecio = prompt("Precio");
+    if(!nuevoPrecio) return;
+
+    const nuevaImagen =
+    prompt("Imagen (opcional)") || "";
+
+    addDoc(collection(db,"productos"),{
+        nombre: nuevoNombre,
+        codigo: nuevoCodigo,
+        precio: Number(nuevoPrecio),
+        imagen: nuevaImagen
+    })
+    .then(()=>{
+        alert("Producto agregado");
+        cargarProductos();
+    });
+
 }
 
-/* CARGAR */
+/* CARGAR PRODUCTOS DESDE FIREBASE */
+
 async function cargarProductos(){
-  const snap = await getDocs(collection(db,"productos"));
 
-  productos = [];
-  snap.forEach(d=>{
-    productos.push({ id:d.id, ...d.data() });
-  });
+    try{
 
-  mostrar(productos);
+        const querySnapshot =
+        await getDocs(collection(db, "productos"));
+        // TODO: cambiar a consultas por código para máxima velocidad
+
+        productos = [];
+
+        querySnapshot.forEach((docSnap)=>{
+
+            productos.push({
+                id: docSnap.id,
+                ...docSnap.data()
+            });
+
+        });
+      productos.sort((a,b)=>
+    (a.nombre || a.Nombre || "").localeCompare(b.nombre || b.Nombre || "")
+);
+
+/* ACTUALIZAR CONTADOR */
+const contador = document.getElementById("contadorProductos");
+if(contador){
+    contador.textContent = "Productos: " + productos.length;
 }
 
-cargarProductos();
+mostrar(productos);
 
+    }
+
+    catch(error){
+
+        console.error(error);
+
+        alert(
+            "Error cargando productos desde Firebase"
+        );
+
+    }
+
+}
 /* BUSCADOR */
-buscar.addEventListener("input", ()=>{
-  const t = buscar.value.toLowerCase().trim();
 
-  if(!t) return mostrar(productos);
+buscar.addEventListener(
+"input",
+()=>{
 
-  mostrar(productos.filter(p =>
-    String(p.codigo).toLowerCase().includes(t) ||
-    (p.nombre||"").toLowerCase().includes(t)
-  ));
+    const texto =
+    buscar.value
+    .trim()
+    .toLowerCase();
+
+    if(texto === ""){
+
+        mostrar(productos);
+
+        return;
+
+    }
+
+    const filtrados =
+    productos.filter(p=>
+
+        String(p.codigo)
+        .toLowerCase()
+        .includes(texto)
+
+        ||
+
+      (p.nombre || p.Nombre || "")
+.toLowerCase()
+.includes(texto)
+    );
+
+    mostrar(filtrados);
+
 });
 
 /* LIMPIAR */
-limpiar.addEventListener("click", ()=>{
-  buscar.value = "";
-  mostrar(productos);
+
+/* LIMPIAR */
+
+limpiar.addEventListener(
+"click",
+()=>{
+
+    buscar.value = "";
+
+    mostrar(productos);
+
+    buscar.focus();
+
 });
 
-/* CÁMARA (ARREGLADA) */
-camara.addEventListener("click", async ()=>{
+let scanner = null;
+camara.addEventListener("click", async () => {
 
-  try{
+    try {
 
-    lector.style.display = "block";
+        lector.style.display = "block";
+
+        if (scanner) return;
+
+        scanner = new ZXing.BrowserMultiFormatReader();
+
+        // 🔥 FORZAR CÁMARA TRASERA (ESTO ES LA CLAVE)
+        const constraints = {
+            video: {
+                facingMode: { ideal: "environment" }
+            }
+        };
+
+        scanner.decodeFromConstraints(
+            constraints,
+            "video",
+            (result, error) => {
+
+                if (result) {
+
+                    const codigo = result.getText();
+
+                    console.log("DETECTADO:", codigo);
+
+                    beep();
+                    navigator.vibrate?.(100);
+
+                    buscar.value = codigo;
+                    buscar.dispatchEvent(new Event("input"));
+
+                    // ⚠️ IMPORTANTE: NO destruir scanner de inmediato
+                    scanner.reset();
+                    scanner = null;
+
+                    lector.style.display = "none";
+                }
+            }
+        );
+
+    } catch (error) {
+
+        console.error(error);
+        alert(error.message);
+
+    }
+});
+/*CERRAR CAMARA */
+cerrarCamara.addEventListener(
+"click",
+()=>{
 
     if(scanner){
-      scanner.reset();
-      scanner = null;
+
+        scanner.reset();
+
+        scanner = null;
+
     }
 
-    scanner = new ZXing.BrowserMultiFormatReader();
+    lector.style.display =
+    "none";
 
-    const devices = await scanner.listVideoInputDevices();
+});
 
-    if(!devices.length){
-      alert("No hay cámara");
-      return;
-    }
 
-    const cameraId = devices[0].deviceId;
 
-    scanner.decodeFromVideoDevice(
-      cameraId,
-      "video",
-      (result)=>{
-        if(result){
 
-          const codigo = result.getText();
+/* AGREGAR PRODUCTO*/
+agregar.addEventListener(
+"click",
+async ()=>{
 
-          beep();
-          buscar.value = codigo;
-          buscar.dispatchEvent(new Event("input"));
+    const nombre =
+    prompt("Nombre del producto");
 
-          scanner.reset();
-          scanner = null;
-        }
-      }
+    if(!nombre) return;
+
+    const codigo =
+    prompt("Código de barras");
+
+    if(!codigo) return;
+
+    const precio =
+    prompt("Precio");
+
+    if(!precio) return;
+
+    const imagen =
+    prompt(
+        "Nombre de la imagen (ejemplo: cocacola600ml.webp)"
     );
 
-  }catch(e){
-    alert("Error cámara");
-  }
+    if(!imagen) return;
 
-});
+    try{
 
-/* CERRAR CÁMARA */
-cerrarCamara.addEventListener("click", ()=>{
-  if(scanner){
-    scanner.reset();
-    scanner = null;
-  }
-  lector.style.display = "none";
-});
+    await addDoc(
 
-/* AGREGAR */
-agregar.addEventListener("click", async ()=>{
+    collection(db, "productos"),
 
-  const nombre = prompt("Nombre");
-  if(!nombre) return;
+    {
+        nombre: nombre,
+        codigo: codigo,
+        precio: Number(precio),
+        imagen: imagen
+    }
 
-  const codigo = prompt("Código");
-  if(!codigo) return;
-
-  const precio = prompt("Precio");
-  if(!precio) return;
-
-  const imagen = prompt("Imagen") || "";
-
-  await addDoc(collection(db,"productos"),{
-    nombre,
-    codigo,
-    precio:Number(precio),
-    imagen
-  });
-
-  cargarProductos();
-});
-
-/* EDITAR (ARREGLADO SIN ERRORES) */
-editar.addEventListener("click", ()=>{
-
-const op = prompt(
-"¿Desea editar?\n\n1 = Con cámara\n2 = Por nombre o código"
 );
-if(!op) return;
 
-  if(op==="1"){
-    camara.click();
-    return;
-  }
+        alert("Producto guardado");
 
-  if(op==="2"){
+        cargarProductos();
 
-    const q = prompt("Código o nombre");
-    if(!q) return;
-
-    const t = q.toLowerCase();
-
-    const p = productos.find(x =>
-      String(x.codigo).toLowerCase().includes(t) ||
-      (x.nombre||"").toLowerCase().includes(t)
-    );
-
-    if(!p){
-      alert("No encontrado");
-      return;
     }
 
-    const nombre = prompt("Nombre", p.nombre);
-    const codigo = prompt("Código", p.codigo);
-    const precio = prompt("Precio", p.precio);
-    const imagen = prompt("Imagen", p.imagen);
+    catch(error){
 
-    setDoc(doc(db,"productos",p.id),{
-      nombre,
-      codigo,
-      precio:Number(precio),
-      imagen
-    });
+        console.error(error);
 
-    cargarProductos();
-  }
+        alert("Error guardando producto");
+
+    }
 
 });
+/* EDITAR */
+editar.addEventListener("click", () => {
 
+    const opcion = prompt(
+        "¿Cómo desea editar?\n\n1 = Escanear con cámara\n2 = Escribir por código/nombre"
+    );
+
+    if(!opcion) return;
+
+    // =========================
+    // 📷 ESCANER
+    // =========================
+    if(opcion === "1"){
+
+        modoEdicion = true;
+
+        alert("Abra la cámara y escanee el producto");
+
+        camara.click();
+
+        return;
+    }
+
+    // =========================
+    // ✍ ESCRIBIR
+    // =========================
+    if(opcion === "2"){
+
+        const buscarProducto = prompt("Escribe código o nombre");
+        if(!buscarProducto) return;
+
+        const texto = buscarProducto.toLowerCase().trim();
+
+        const producto = productos.find(p =>
+            String(p.codigo).toLowerCase().includes(texto) ||
+            (p.nombre || "").toLowerCase().includes(texto)
+        );
+
+        if(!producto){
+            alert("Producto no encontrado");
+            return;
+        }
+
+        editarProducto(producto);
+        return;
+    }
+
+    alert("Opción inválida");
+
+});
+/* INICIAR */
+
+cargarProductos();
+
+buscar.focus();
+
+/* SIEMPRE LISTO PARA PISTOLA */
+
+document.addEventListener(
+"click",
+()=>{
+
+    buscar.focus();
+
+}
+);
+
+window.addEventListener(
+"load",
+()=>{
+
+    buscar.focus();
+
+}
+);
 </script>
 
 </body>
