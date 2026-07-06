@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -404,7 +405,6 @@ function beep() {
 let productos = [];
 let modoScanner = "";
 let procesandoCodigo = false;
-let controls = null;
 
 const contenedor =
 document.getElementById("productos");
@@ -741,22 +741,23 @@ camara.addEventListener("click", async () => {
 
 
 /*CERRAR CAMARA */
-cerrarCamara.addEventListener("click", () => {
+cerrarCamara.addEventListener(
+"click",
+()=>{
 
-    // 🔴 APAGA LA CÁMARA REAL (IMPORTANTE EN MÓVIL)
-    if (controls) {
-        controls.stop();
-        controls = null;
-    }
+    if(scanner){
 
-    // limpieza opcional
-    if (scanner) {
         scanner.reset();
+
         scanner = null;
+
     }
 
-    lector.style.display = "none";
+    lector.style.display =
+    "none";
+
 });
+
 
 /* AGREGAR PRODUCTO*/
 agregar.addEventListener(

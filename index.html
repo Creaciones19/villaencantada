@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -404,6 +405,9 @@ function beep() {
 let productos = [];
 let modoScanner = "";
 let procesandoCodigo = false;
+let controls = null;
+let bloqueado = false;
+
 
 const contenedor =
 document.getElementById("productos");
@@ -685,46 +689,45 @@ camara.addEventListener("click", async () => {
             "video",
             (result, error) => {
 
-                if (result) {
+              if (result) {
 
-                    const codigo = result.getText();
+    const codigo = result.getText().trim();
 
-                    beep();
-                    navigator.vibrate?.(100);
+    beep();
+    navigator.vibrate?.(100);
 
+    // 🔥 EDITAR
+    if (modoScanner === "editar") {
 
-                    // 🔥 EDITAR
-                    if (modoScanner === "editar") {
+        modoScanner = "";
 
-                        modoScanner = "";
+        cerrarCamara.click();
 
-                        controls?.stop(); // 👈 CIERRA CÁMARA BIEN
+        setTimeout(() => {
+            editarProducto(codigo);
+        }, 100);
 
-                        cerrarCamara.click();
+        return;
+    }
 
-                        editarProducto(codigo);
+    // 🔥 ELIMINAR
+    if (modoScanner === "eliminar") {
 
-                        return;
-                    }
+        modoScanner = "";
 
-                    // 🔥 ELIMINAR
-                    if (modoScanner === "eliminar") {
+        cerrarCamara.click();
 
-                        modoScanner = "";
+        setTimeout(() => {
+            eliminarProducto(codigo);
+        }, 100);
 
-                        controls?.stop();
+        return;
+    }
 
-                        cerrarCamara.click();
-
-                        eliminarProducto(codigo);
-
-                        return;
-                    }
-
-                    // 🔥 BUSCAR NORMAL
-                    buscar.value = codigo;
-                    buscar.dispatchEvent(new Event("input"));
-                }
+    // 🔥 BUSCAR NORMAL
+    buscar.value = codigo;
+    buscar.dispatchEvent(new Event("input"));
+}
 
                 // errores normales del scanner (NO críticos)
                 // if (error) console.warn(error);
@@ -1032,35 +1035,51 @@ async function editarProducto(codigo){
 }
 
 /* ELIMINAR POR CÓDIGO (ESCÁNER O TEXTO) */
-async function eliminarProducto(codigo){
+async function eliminarProducto(valor){
 
-    const producto = productos.find(p =>
-        String(p.codigo) === String(codigo)
-    );
+    const texto = String(valor).trim().toLowerCase();
+
+    const producto = productos.find(p => {
+
+        const codigo = String(p.codigo || "")
+            .trim()
+            .toLowerCase();
+
+        const nombre = String(p.nombre || p.Nombre || "")
+            .trim()
+            .toLowerCase();
+
+        return codigo.includes(texto) || nombre.includes(texto);
+
+    });
 
     if(!producto){
         alert("Producto no encontrado");
         return;
     }
 
-    if(!confirm(`¿Eliminar "${producto.nombre || producto.Nombre}"?`)){
+    const confirmar = confirm(
+        `¿Está seguro que desea eliminar el producto "${producto.nombre || producto.Nombre}"?`
+    );
+
+    if(!confirmar){
         return;
     }
 
     try{
 
         await deleteDoc(
-            doc(db,"productos",producto.id)
+            doc(db, "productos", producto.id)
         );
 
-        alert("Producto eliminado");
+        alert("Producto eliminado correctamente.");
 
-        cargarProductos();
+        await cargarProductos();
 
     }catch(error){
 
         console.error(error);
-        alert("Error al eliminar");
+        alert("Error al eliminar el producto.");
 
     }
 
@@ -1098,6 +1117,9 @@ async ()=>{
 });
 
 
+
+
+/* carga rapida */
 function renderLento(lista){
 
     contenedor.innerHTML = "";
