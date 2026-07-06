@@ -404,7 +404,7 @@ function beep() {
 let productos = [];
 let modoScanner = "";
 let procesandoCodigo = false;
-let scanner = null;
+
 const contenedor =
 document.getElementById("productos");
 
@@ -660,29 +660,27 @@ limpiar.addEventListener(
 
 /* CAMARA*/
 
-
-let controls = null;
-
+let scanner = null;
 camara.addEventListener("click", async () => {
 
     try {
 
         lector.style.display = "block";
 
-        if (controls) return;
+        if (scanner) return;
 
-      scanner = new window.ZXing.BrowserMultiFormatReader();
+        scanner = new ZXing.BrowserMultiFormatReader();
 
         const devices = await scanner.listVideoInputDevices();
 
-        if (!devices.length) {
+        if (devices.length === 0) {
             alert("No hay cámara");
             return;
         }
 
-        const cameraId = devices[devices.length - 1].deviceId;
+        let cameraId = devices[devices.length - 1].deviceId;
 
-        controls = await scanner.decodeFromVideoDevice(
+        scanner.decodeFromVideoDevice(
             cameraId,
             "video",
             (result, error) => {
@@ -693,6 +691,7 @@ camara.addEventListener("click", async () => {
 
                     beep();
                     navigator.vibrate?.(100);
+
 
                     // 🔥 EDITAR
                     if (modoScanner === "editar") {
@@ -739,7 +738,7 @@ camara.addEventListener("click", async () => {
 });
 
 
-/* CIERRE DE CAMARA/
+
 /*CERRAR CAMARA */
 cerrarCamara.addEventListener(
 "click",
@@ -1151,4 +1150,4 @@ function renderLento(lista){
 
 </body>
 </html>
-```
+
