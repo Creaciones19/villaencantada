@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -71,8 +70,7 @@ body{
 
 /* BOTÓN */
 
-.limpiar,
-.contador{
+.limpiar{
 
     height:58px;
 
@@ -88,13 +86,7 @@ body{
     font-size:16px;
     font-weight:bold;
 
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    white-space:nowrap;
+    cursor:pointer;
 
     transition:.2s;
 
@@ -174,6 +166,7 @@ body{
 /* =========================
    RESPONSIVE DESIGN
 ========================= */
+
 @media (max-width: 768px){
 
     body{
@@ -186,24 +179,20 @@ body{
     }
 
     .contenedor-busqueda{
-        display:flex;
-        flex-wrap:wrap;
-        gap:8px;
+        flex-direction:column;
         align-items:stretch;
     }
 
     .buscador{
         width:100%;
-        flex:none;
         height:52px;
         font-size:16px;
     }
 
     .limpiar{
-        width:calc(50% - 4px);
-        height:42px;
-        font-size:13px;
-        padding:0 8px;
+        width:100%;
+        height:48px;
+        font-size:15px;
     }
 
     .productos{
@@ -222,12 +211,11 @@ body{
 
     #lector{
         width:100% !important;
-        max-width:350px;
     }
 }
 
 @media (max-width: 480px){
- 
+
     .productos{
         grid-template-columns:repeat(2,1fr);
     }
@@ -253,13 +241,14 @@ body{
     }
 }
 
+
 </style>
 </head>
-<body>
 
-<div class="titulo">
-    Buscar Productos
-</div>
+<body>
+  <div class="titulo">
+        Buscar Productos
+    </div>
 
 <div class="contenedor-busqueda">
 
@@ -270,28 +259,23 @@ body{
     placeholder="Escanee o escriba producto...">
 
     <button
-    id="limpiar"
-    class="limpiar">
-        Borrar
-    </button>
-
-    <button
     id="camara"
     class="limpiar">
         📷 Escanear
     </button>
-<div
-id="lector"
-style="
-display:none;
-width:300px;
-margin-top:10px;
-">
-    <video
-    id="video"
-    style="width:100%;">
-    </video>
-</div>
+
+        <button
+    id="agregar"
+    class="limpiar">
+        Agregar producto
+</button>
+
+<button
+id="editar"
+class="limpiar">
+    Editar
+</button>
+
     <button
     id="cerrarCamara"
     class="limpiar">
@@ -299,28 +283,83 @@ margin-top:10px;
     </button>
 
     <button
-    id="agregar"
+    id="limpiar"
     class="limpiar">
-        Agregar producto
+        Borrar
+    </button>
+
+    <button id="eliminar" class="limpiar">
+    Eliminar producto
 </button>
 
-<button
-    id="editar"
+
+   <button
+    id="contador"
     class="limpiar">
-        Editar
-</button>
+        contador
+    </button>
+
+
+</div>
 
 <div
-    id="contadorProductos"
-    class="contador">
-    Productos: 0
-</div>
+id="lector"
+style="
+display:none;
+max-width:500px;
+margin:20px auto;
+">
+
+    <video
+    id="video"
+    style="
+    width:100%;
+    ">
+    </video>
 
 </div>
 
 <div
 class="productos"
 id="productos">
+</div>
+
+<div id="modalAgregar" style="
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.5);
+justify-content:center;
+align-items:center;
+">
+
+<div style="
+background:white;
+padding:20px;
+border-radius:12px;
+width:300px;
+">
+
+<h3>Agregar producto</h3>
+
+<input id="mNombre" placeholder="Nombre" style="width:100%;margin:5px 0;padding:8px;">
+<input id="mCodigo" placeholder="Código" style="width:100%;margin:5px 0;padding:8px;">
+<input id="mPrecio" placeholder="Precio" style="width:100%;margin:5px 0;padding:8px;">
+<input id="mImagen" placeholder="Imagen" style="width:100%;margin:5px 0;padding:8px;">
+
+<button id="btnGuardarModal" style="margin-top:10px;width:100%;padding:10px;background:#ff30a2;color:white;border:none;">
+GUARDAR
+</button>
+
+<button id="btnCerrarModal" style="margin-top:10px;width:100%;padding:10px;background:#444;color:white;border:none;">
+CERRAR
+</button>
+
+</div>
+
 </div>
 <script src="https://unpkg.com/@zxing/library@latest"></script>
 
@@ -334,6 +373,7 @@ import {
   setDoc,
   addDoc,
   getDocs,
+  deleteDoc,
   collection
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
@@ -347,6 +387,9 @@ const firebaseConfig = {
   appId: "1:1095327917170:web:a3dab096621d695b6e0eeb"
 };
 
+const eliminar =
+document.getElementById("eliminar");
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -359,6 +402,8 @@ function beep() {
 
  /* CONSTANTES A TRABAJAR */  
 let productos = [];
+let modoScanner = "";
+let procesandoCodigo = false;
 const contenedor =
 document.getElementById("productos");
 
@@ -383,9 +428,8 @@ document.getElementById("editar");
 const lector =
 document.getElementById("lector");
 
-/* Let modo editar */
+const contador = document.getElementById("contador");
 
-let modoEdicion = false;
 /* MOSTRAR */
 function mostrar(lista){
 
@@ -478,7 +522,7 @@ function abrirModalAgregar(valorBusqueda){
 
     let codigo = "";
     let nombre = "";
-
+    
     if(/^\d+$/.test(valorBusqueda)){
         codigo = valorBusqueda;
     }else{
@@ -525,8 +569,9 @@ async function cargarProductos(){
     try{
 
         const querySnapshot =
-        await getDocs(collection(db, "productos"));
-        // TODO: cambiar a consultas por código para máxima velocidad
+        await getDocs(
+            collection(db, "productos")
+        );
 
         productos = [];
 
@@ -543,10 +588,7 @@ async function cargarProductos(){
 );
 
 /* ACTUALIZAR CONTADOR */
-const contador = document.getElementById("contadorProductos");
-if(contador){
-    contador.textContent = "Productos: " + productos.length;
-}
+actualizarContador();
 
 mostrar(productos);
 
@@ -582,21 +624,25 @@ buscar.addEventListener(
 
     }
 
-    const filtrados =
-    productos.filter(p=>
+const filtrados =
+productos.filter(p =>
 
-        String(p.codigo)
+    String(p.codigo)
         .toLowerCase()
         .includes(texto)
 
-        ||
+    ||
 
-      (p.nombre || p.Nombre || "")
-.toLowerCase()
-.includes(texto)
-    );
+    (p.nombre || p.Nombre || "")
+        .toLowerCase()
+        .includes(texto)
 
-    mostrar(filtrados);
+);
+
+mostrar(filtrados);
+
+/* ACTUALIZAR CONTADOR */
+actualizarContador();
 
 });
 
@@ -617,101 +663,67 @@ limpiar.addEventListener(
 });
 
 let scanner = null;
-
 camara.addEventListener("click", async () => {
 
-    try{
+    try {
 
         lector.style.display = "block";
 
-        if(scanner) return;
+        if (scanner) return;
 
-        scanner =
-        new ZXing.BrowserMultiFormatReader();
+        scanner = new ZXing.BrowserMultiFormatReader();
 
-        const devices =
-        await scanner.listVideoInputDevices();
+        const devices = await scanner.listVideoInputDevices();
 
-        if(devices.length === 0){
-
+        if (devices.length === 0) {
             alert("No hay cámara");
-
             return;
-
         }
 
-        let cameraId =
-        devices[devices.length - 1].deviceId;
+        let cameraId = devices[devices.length - 1].deviceId;
 
         scanner.decodeFromVideoDevice(
-
             cameraId,
-
             "video",
+            (result, error) => {
 
-            (result,error)=>{
+                if (result) {
 
-                if(result){
-                    scanner.reset();
-                    scanner=null;
-                    lector.style.display='none';
-
-                    const codigo =
-                    result.getText();
-
-                    console.log(
-                        "DETECTADO:",
-                        codigo
-                    );
+                    const codigo = result.getText();
 
                     beep();
-
                     navigator.vibrate?.(100);
 
-                    buscar.value =
-                    codigo;
+                    // 🔥 EDITAR POR CÁMARA
+                    if (modoScanner === "editar") {
 
-                    buscar.dispatchEvent(
-                        new Event("input")
-                    );
+                        modoScanner = "";
+                        cerrarCamara.click();
+                        editarProducto(codigo);
+                        return;
+                    }
 
+                    // 🔥 ELIMINAR POR CÁMARA
+                    if (modoScanner === "eliminar") {
+
+                        modoScanner = "";
+                        cerrarCamara.click();
+                        eliminarProducto(codigo);
+                        return;
+                    }
+
+                    // 🔥 SOLO BUSCAR NORMAL
+                    buscar.value = codigo;
+                    buscar.dispatchEvent(new Event("input"));
                 }
-
             }
-
         );
 
-    }
-
-    catch(error){
-
+    } catch (error) {
         console.error(error);
-
         alert(error.message);
-
     }
-
 });
-/*CERRAR CAMARA */
-cerrarCamara.addEventListener(
-"click",
-()=>{
-
-    if(scanner){
-
-        scanner.reset();
-
-        scanner = null;
-
-    }
-
-    lector.style.display =
-    "none";
-
-});
-
-
-
 
 /* AGREGAR PRODUCTO*/
 agregar.addEventListener(
@@ -771,55 +783,138 @@ async ()=>{
 
 });
 /* EDITAR */
-editar.addEventListener("click", () => {
+editar.addEventListener(
+"click",
+async ()=>{
+    const op =
+prompt(
+"1 = Escanear\n2 = Escribir"
+);
 
-    const opcion = prompt(
-        "¿Cómo desea editar?\n\n1 = Escanear con cámara\n2 = Escribir por código/nombre"
+if(!op) return;
+
+if(op == "1"){
+
+    modoScanner = "editar";
+
+    camara.click();
+
+    return;
+
+}
+
+    const buscarProducto =
+    prompt(
+        "Escribe código o nombre"
     );
 
-    if(!opcion) return;
+    if(!buscarProducto) return;
 
-    // =========================
-    // 📷 ESCANER
-    // =========================
-    if(opcion === "1"){
+    const texto =
+    buscarProducto
+    .toLowerCase()
+    .trim();
 
-        modoEdicion = true;
+    const producto =
+    productos.find(p =>
 
-        alert("Abra la cámara y escanee el producto");
+        String(p.codigo)
+        .toLowerCase()
+        .includes(texto)
 
-        camara.click();
+        ||
 
-        return;
-    }
+        (p.nombre || p.Nombre || "")
+        .toLowerCase()
+        .includes(texto)
 
-    // =========================
-    // ✍ ESCRIBIR
-    // =========================
-    if(opcion === "2"){
+    );
 
-        const buscarProducto = prompt("Escribe código o nombre");
-        if(!buscarProducto) return;
+    if(!producto){
 
-        const texto = buscarProducto.toLowerCase().trim();
-
-        const producto = productos.find(p =>
-            String(p.codigo).toLowerCase().includes(texto) ||
-            (p.nombre || "").toLowerCase().includes(texto)
+        alert(
+            "Producto no encontrado"
         );
 
-        if(!producto){
-            alert("Producto no encontrado");
-            return;
-        }
-
-        editarProducto(producto);
         return;
+
     }
 
-    alert("Opción inválida");
+    const nuevoNombre =
+    prompt(
+        "Nombre",
+        producto.nombre || producto.Nombre || ""
+    );
+
+    if(nuevoNombre === null)
+        return;
+
+    const nuevoCodigo =
+    prompt(
+        "Código",
+        producto.codigo
+    );
+
+    if(nuevoCodigo === null)
+        return;
+
+    const nuevoPrecio =
+    prompt(
+        "Precio",
+        producto.precio
+    );
+
+    if(nuevoPrecio === null)
+        return;
+
+    const nuevaImagen =
+    prompt(
+        "Imagen",
+        producto.imagen || ""
+    );
+
+    if(nuevaImagen === null)
+        return;
+
+    try{
+
+        await setDoc(
+
+            doc(
+                db,
+                "productos",
+                producto.id
+            ),
+
+            {
+                nombre: nuevoNombre,
+                codigo: nuevoCodigo,
+                precio: Number(nuevoPrecio),
+                imagen: nuevaImagen
+            }
+
+        );
+
+        alert(
+            "Producto actualizado"
+        );
+
+        cargarProductos();
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+        alert(
+            "Error al actualizar"
+        );
+
+    }
 
 });
+
 /* INICIAR */
 
 cargarProductos();
@@ -845,6 +940,129 @@ window.addEventListener(
 
 }
 );
+
+/* FUNCION PARA CONTADOR*/
+/* FUNCION PARA CONTADOR*/
+function actualizarContador(){
+    if(contador){
+        contador.textContent = "Productos: " + productos.length;
+    }
+}
+
+/* EDITAR POR CÓDIGO (ESCÁNER O TEXTO) */
+async function editarProducto(codigo){
+
+    const producto = productos.find(p =>
+        String(p.codigo) === String(codigo)
+    );
+
+    if(!producto){
+        alert("Producto no encontrado");
+        return;
+    }
+
+    const nuevoNombre = prompt("Nombre", producto.nombre || producto.Nombre || "");
+    if(nuevoNombre === null) return;
+
+    const nuevoCodigo = prompt("Código", producto.codigo);
+    if(nuevoCodigo === null) return;
+
+    const nuevoPrecio = prompt("Precio", producto.precio);
+    if(nuevoPrecio === null) return;
+
+    const nuevaImagen = prompt("Imagen", producto.imagen || "");
+    if(nuevaImagen === null) return;
+
+    try{
+
+        await setDoc(
+            doc(db,"productos",producto.id),
+            {
+                nombre: nuevoNombre,
+                codigo: nuevoCodigo,
+                precio: Number(nuevoPrecio),
+                imagen: nuevaImagen
+            }
+        );
+
+        alert("Producto actualizado");
+
+        cargarProductos();
+
+    }catch(error){
+
+        console.error(error);
+        alert("Error al actualizar");
+
+    }
+
+}
+
+/* ELIMINAR POR CÓDIGO (ESCÁNER O TEXTO) */
+async function eliminarProducto(codigo){
+
+    const producto = productos.find(p =>
+        String(p.codigo) === String(codigo)
+    );
+
+    if(!producto){
+        alert("Producto no encontrado");
+        return;
+    }
+
+    if(!confirm(`¿Eliminar "${producto.nombre || producto.Nombre}"?`)){
+        return;
+    }
+
+    try{
+
+        await deleteDoc(
+            doc(db,"productos",producto.id)
+        );
+
+        alert("Producto eliminado");
+
+        cargarProductos();
+
+    }catch(error){
+
+        console.error(error);
+        alert("Error al eliminar");
+
+    }
+
+}
+/* ELIMINAR PRODUCTO */
+
+eliminar.addEventListener(
+"click",
+async ()=>{
+
+    const op =
+    prompt(
+        "1 = Escanear\n2 = Escribir"
+    );
+
+    if(!op) return;
+
+    if(op == "1"){
+
+        modoScanner = "eliminar";
+
+        camara.click();
+
+        return;
+
+    }
+
+    const buscarProducto =
+    prompt("Escriba el código o nombre del producto");
+
+    if(!buscarProducto) return;
+
+    eliminarProducto(buscarProducto);
+
+});
 </script>
 
 </body>
