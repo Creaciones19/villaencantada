@@ -1517,7 +1517,22 @@ btnEscanear.onclick = async () => {
 
         camaraAbierta = true;
 
-        codeReader = new ZXing.BrowserMultiFormatReader();
+       const hints = new Map();
+
+hints.set(
+    ZXing.DecodeHintType.POSSIBLE_FORMATS,
+    [
+        ZXing.BarcodeFormat.EAN_13,
+        ZXing.BarcodeFormat.EAN_8,
+        ZXing.BarcodeFormat.UPC_A,
+        ZXing.BarcodeFormat.UPC_E,
+        ZXing.BarcodeFormat.CODE_128,
+        ZXing.BarcodeFormat.CODE_39
+    ]
+);
+
+codeReader =
+new ZXing.BrowserMultiFormatReader(hints);
 
         const devices = await codeReader.listVideoInputDevices();
 
@@ -1539,49 +1554,59 @@ btnEscanear.onclick = async () => {
 
         await codeReader.decodeFromVideoDevice(
 
-            cameraId,
+    cameraId,
 
-            "reader",
+    "reader",
 
-            (resultado, error) => {
+    (resultado, error) => {
 
-                if (!resultado || escaneado) return;
+        if (!resultado || escaneado) return;
 
-                escaneado = true;
+        escaneado = true;
 
-              const codigo = (resultado.getText?.() || resultado.text).trim();
+        const codigoEscaneado =
+            (resultado.getText?.() || resultado.text).trim();
 
-                beep();
-                vibrar();
+        beep();
+        vibrar();
 
-                buscar.value = codigo;
+        buscar.value = codigoEscaneado;
 
-                buscarProductos();
+        buscarProductos();
 
-                const producto = productos.find(
-                    p => String(p.codigo).trim() === codigo
-                );
+        const producto = productos.find(
+            p => String(p.codigo).trim() === codigoEscaneado
+        );
 
-                cerrarCamara();
+        cerrarCamara();
 
-                if (producto) {
+        if (producto) {
 
-                    setTimeout(() => {
+            setTimeout(() => {
 
-                        abrirModal(producto);
+                abrirModal(producto);
 
-                    }, 300);
+            }, 300);
 
-                } else {
+        } else {
 
-                    alert("Producto no encontrado");
+            if (confirm("Producto no encontrado.\n\n¿Desea agregarlo?")) {
 
-                }
+                limpiarFormulario();
+
+                codigo.value = codigoEscaneado;
+
+                abrirFormulario();
+
+                nombre.focus();
 
             }
 
-        );
+        }
 
+    }
+
+);
     } catch (error) {
 
         console.error(error);
@@ -1637,19 +1662,43 @@ buscar.addEventListener("keydown", (e) => {
     buscarProductos();
 
     // Si escribió un código exacto, abrir el modal
-    const producto = productos.find(
-        p => String(p.codigo).trim() === texto
-    );
+ const producto = productos.find(
+    p => String(p.codigo).trim() === texto
+);
 
-    if (producto) {
+if (producto) {
 
-        setTimeout(() => {
+    setTimeout(() => {
 
-            abrirModal(producto);
+        abrirModal(producto);
 
-        }, 300);
+    }, 300);
+
+} else {
+
+    if (confirm("Producto no encontrado.\n\n¿Desea agregarlo?")) {
+
+        limpiarFormulario();
+
+        // Si sólo tiene números, es un código
+        if (/^\d+$/.test(texto)) {
+
+            codigo.value = texto;
+            nombre.focus();
+
+        } else {
+
+            // Si tiene letras, es un nombre
+            nombre.value = texto;
+            codigo.focus();
+
+        }
+
+        abrirFormulario();
 
     }
+
+}
 
 });
 /*==================================================
