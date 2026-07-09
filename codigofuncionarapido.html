@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -492,13 +493,15 @@ function mostrar(lista){
         return;
     }
 
+    let html = "";
+
     lista.forEach(producto => {
 
-        contenedor.innerHTML += `
+        html += `
         <div class="card">
 
             <img
-            src="${producto.imagen || ''}"
+            src="${producto.imagen && producto.imagen.includes('.') ? producto.imagen : 'https://via.placeholder.com/180x140?text=Sin+Imagen'}"
             class="imagen">
 
             <div class="info">
@@ -521,6 +524,9 @@ function mostrar(lista){
         `;
 
     });
+
+    contenedor.innerHTML = html;
+
 }
 //
 function abrirModalAgregar(valorBusqueda){
@@ -1139,7 +1145,7 @@ function renderLento(lista){
             div.className = "card";
 
             div.innerHTML = `
-                <img src="${producto.imagen || ''}" class="imagen">
+                <img src="${producto.imagen && producto.imagen.includes('.') ? producto.imagen : 'https://via.placeholder.com/180x140?text=Sin+Imagen'}" class="imagen">
 
                 <div class="info">
                     <div class="nombre">
