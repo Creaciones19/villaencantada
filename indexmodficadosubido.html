@@ -784,7 +784,7 @@ let productoActual = null;
 
 let editando = false;
 
-
+let html5Qr = null;
 
 let camaraAbierta = false;
 
@@ -1501,78 +1501,63 @@ ESCANEAR CÓDIGO
 ESCÁNER UNIVERSAL
 Teléfono + Tablet + Computadora + Pistola
 ==================================================*/
-let codeReader = null;
+
+const codeReader = new ZXing.BrowserMultiFormatReader();
+
 let escaneado = false;
 
 btnEscanear.onclick = async () => {
 
-    if (camaraAbierta) return;
+    if(camaraAbierta) return;
 
     escaneado = false;
 
-    try {
+    try{
 
         reader.style.display = "block";
         btnCerrar.style.display = "inline-block";
 
         camaraAbierta = true;
 
-        codeReader = new ZXing.BrowserMultiFormatReader();
-
-        const devices = await codeReader.listVideoInputDevices();
-
-        if (devices.length === 0) {
-
-            alert("No se encontró ninguna cámara.");
-
-            cerrarCamara();
-
-            return;
-
-        }
-
-        // Usa la última cámara (normalmente la trasera)
-        const cameraId =
-    devices.length > 1
-        ? devices[devices.length - 1].deviceId
-        : devices[0].deviceId;
-
         await codeReader.decodeFromVideoDevice(
 
-            cameraId,
+            null,
 
             "reader",
 
             (resultado, error) => {
 
-                if (!resultado || escaneado) return;
+                if(!resultado || escaneado) return;
 
                 escaneado = true;
 
-              const codigo = (resultado.getText?.() || resultado.text).trim();
+                const codigo = resultado.text.trim();
 
-                beep();
-                vibrar();
+             // El lector leyó correctamente
+beep();
+vibrar();
 
+                // Mostrar el código en la búsqueda
                 buscar.value = codigo;
-
                 buscarProductos();
 
+                // Buscar el producto
                 const producto = productos.find(
                     p => String(p.codigo).trim() === codigo
                 );
 
+                // Cerrar la cámara inmediatamente
                 cerrarCamara();
 
-                if (producto) {
+                if(producto){
 
                     setTimeout(() => {
 
                         abrirModal(producto);
 
-                    }, 300);
+                    },300);
 
-                } else {
+                }else{
 
                     alert("Producto no encontrado");
 
@@ -1582,33 +1567,27 @@ btnEscanear.onclick = async () => {
 
         );
 
-    } catch (error) {
+   }catch(error){
 
-        console.error(error);
+    console.error("ERROR DE LA CÁMARA:", error);
 
-        alert(
-    "No fue posible abrir la cámara.\n\n" +
-    (error?.message || error)
-);
+    alert(
+        "No fue posible abrir la cámara.\n\n" +
+        (error?.message || error)
+    );
 
-        cerrarCamara();
+    cerrarCamara();
 
-    }
-
+}
 };
-function cerrarCamara() {
 
-    if (codeReader) {
+function cerrarCamara(){
 
-        try {
+    try{
 
-            codeReader.reset();
+        codeReader.reset();
 
-        } catch (e) {}
-
-        codeReader = null;
-
-    }
+    }catch(e){}
 
     camaraAbierta = false;
     escaneado = false;
@@ -1619,26 +1598,23 @@ function cerrarCamara() {
 }
 
 btnCerrar.onclick = cerrarCamara;
-
 buscar.addEventListener("keydown", (e) => {
 
     if (e.key !== "Enter") return;
 
     e.preventDefault();
 
-    const texto = buscar.value.trim();
+    const codigo = buscar.value.trim();
 
-    if (!texto) return;
+    if (!codigo) return;
 
-    beep();
+     beep();
     vibrar();
 
-    // Buscar por nombre o código
     buscarProductos();
 
-    // Si escribió un código exacto, abrir el modal
     const producto = productos.find(
-        p => String(p.codigo).trim() === texto
+        p => String(p.codigo).trim() === codigo
     );
 
     if (producto) {
@@ -1648,6 +1624,10 @@ buscar.addEventListener("keydown", (e) => {
             abrirModal(producto);
 
         }, 300);
+
+    } else {
+
+        alert("Producto no encontrado");
 
     }
 
