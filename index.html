@@ -1521,13 +1521,21 @@ btnEscanear.onclick = async () => {
 
 hints.set(
     ZXing.DecodeHintType.POSSIBLE_FORMATS,
-    [
+   [
+
+        // Supermercados (México)
         ZXing.BarcodeFormat.EAN_13,
+
+        // Productos pequeños
         ZXing.BarcodeFormat.EAN_8,
-        ZXing.BarcodeFormat.UPC_A,
-        ZXing.BarcodeFormat.UPC_E,
+
+        // Etiquetas propias (Canva u otras)
         ZXing.BarcodeFormat.CODE_128,
-        ZXing.BarcodeFormat.CODE_39
+
+        // ZXing.BarcodeFormat.UPC_A,   // Productos de EE.UU.
+        // ZXing.BarcodeFormat.UPC_E,   // UPC reducido
+        // ZXing.BarcodeFormat.CODE_39  // Uso industrial
+
     ]
 );
 
@@ -1662,17 +1670,13 @@ buscar.addEventListener("keydown", (e) => {
     buscarProductos();
 
     // Si escribió un código exacto, abrir el modal
- const producto = productos.find(
+const producto = productos.find(
     p => String(p.codigo).trim() === texto
 );
 
 if (producto) {
 
-    setTimeout(() => {
-
-        abrirModal(producto);
-
-    }, 300);
+    abrirModal(producto);
 
 } else {
 
@@ -1699,7 +1703,6 @@ if (producto) {
     }
 
 }
-
 });
 /*==================================================
 FOCO AUTOMÁTICO PARA PISTOLA LECTORA
