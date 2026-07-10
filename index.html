@@ -1583,9 +1583,16 @@ new ZXing.BrowserMultiFormatReader(hints);
         buscarProductos();
 
         const producto = productos.find(
-            p => String(p.codigo).trim() === codigoEscaneado
-        );
+    p => String(p.codigo).trim() === String(codigoEscaneado).trim()
+);
 
+      // Comparación anterior.
+// Si algún día la necesitas otra vez, puedes descomentarla.
+/*
+const producto = productos.find(
+    p => String(p.codigo).trim() === codigoEscaneado
+);
+*/
         cerrarCamara();
 
         if (producto) {
