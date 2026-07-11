@@ -105,14 +105,30 @@ CAMARA
 
     width:95%;
     max-width:700px;
+
     margin:20px auto;
+
     display:none;
+
     border-radius:15px;
+
     overflow:hidden;
+
+    background:#000;
+
     box-shadow:0 0 15px rgba(0,0,0,.25);
 
 }
 
+
+#reader video{
+
+    width:100%;
+    height:400px;
+    display:block;
+    object-fit:cover;
+
+}
 /*==================================================
 RESULTADO
 ==================================================*/
@@ -451,11 +467,23 @@ VARIABLES
 
 let productos = [];
 
-let codeReader = new ZXing.BrowserMultiFormatReader();
+const hints = new Map();
+
+hints.set(
+    ZXing.DecodeHintType.POSSIBLE_FORMATS,
+    [
+        ZXing.BarcodeFormat.EAN_13,
+        ZXing.BarcodeFormat.EAN_8,
+        ZXing.BarcodeFormat.CODE_128,
+        ZXing.BarcodeFormat.UPC_A
+    ]
+);
+
+let codeReader = new ZXing.BrowserMultiFormatReader(hints);
 
 let camaraAbierta = false;
 
-let ultimoCodigo = "";
+
 let escribiendo = false;
 
 /*==================================================
@@ -710,32 +738,33 @@ function buscarCodigo(codigoLeido){
 
     codigoLeido = String(codigoLeido).trim();
 
-    if(codigoLeido === ultimoCodigo) return;
+    if(codigoLeido === "") return;
 
-    ultimoCodigo = codigoLeido;
 
     escribiendo = false;
 
     buscar.value = "";
 
+
     lista.innerHTML = "";
+
     lista.style.display = "none";
 
-    reader.style.display = "block";
 
-   const producto = productos.find(
-    p => String(p.codigo) === codigoLeido
-);
+    const producto = productos.find(
+        p => String(p.codigo) === codigoLeido
+    );
 
-if(producto){
 
-    mostrarProducto(producto);
+    if(producto){
 
-}else{
+        mostrarProducto(producto);
 
-    mostrarProducto(null);
+    }else{
 
-}
+        mostrarProducto(null);
+
+    }
 
 }
 /*==================================================
@@ -745,45 +774,103 @@ async function iniciarCamara(){
 
     if(camaraAbierta) return;
 
-    camaraAbierta = true;
-
-    reader.style.display = "block";
-
-    btnEscanear.style.display = "none";
-
-    btnCerrar.style.display = "inline-block";
 
     try{
 
-        await codeReader.decodeFromConstraints(
+        camaraAbierta = true;
 
-            {
-                video:{
-                    facingMode:"environment"
-                }
-            },
 
-            "reader",
+        reader.style.display = "block";
 
-            (resultado,error)=>{
 
-                if(resultado){
+        btnEscanear.style.display = "none";
 
-                    buscarCodigo(resultado.getText());
+        btnCerrar.style.display = "inline-block";
 
-                }
 
-            }
+const dispositivos = await codeReader.listVideoInputDevices();
 
-        );
+let camara = dispositivos[dispositivos.length - 1];
 
-    }catch(error){
+await codeReader.decodeFromConstraints(
 
-        console.log(error);
+{
+    video:{
+        deviceId:{
+            exact: camara.deviceId
+        },
 
-        // NO cerrar la cámara automáticamente
+        facingMode:"environment",
+
+        width:{
+            ideal:1280
+        },
+
+        height:{
+            ideal:720
+        }
+    }
+},
+
+"reader",
+
+(resultado,error)=>{
+
+    if(resultado){
+
+        buscarCodigo(resultado.getText());
 
     }
+
+}
+
+);
+
+
+// ENFOQUE AUTOMÁTICO
+const video = document.querySelector("#reader video");
+
+if(video){
+
+    const track = video.srcObject.getVideoTracks()[0];
+
+    const capacidades = track.getCapabilities();
+
+    if(capacidades.focusMode){
+
+        track.applyConstraints({
+
+            advanced:[
+                {
+                    focusMode:"continuous"
+                }
+            ]
+
+        });
+
+    }
+
+}
+
+
+}catch(error){
+
+
+    console.log("Error cámara:",error);
+
+
+    camaraAbierta = false;
+
+
+    reader.style.display = "none";
+
+
+    btnEscanear.style.display = "inline-block";
+
+    btnCerrar.style.display = "none";
+
+
+}
 
 }
 /*==================================================

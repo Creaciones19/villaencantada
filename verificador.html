@@ -486,6 +486,7 @@ let camaraAbierta = false;
 
 let escribiendo = false;
 
+
 /*==================================================
 ELEMENTOS
 ==================================================*/
@@ -715,22 +716,75 @@ buscar.addEventListener("keydown",(e)=>{
 
         );
 
-        if(encontrados.length===0){
+     if(encontrados.length===0){
 
-            mostrarProducto(null);
+    beepError();
+    mostrarProducto(null);
 
-        }else{
+}else{
 
-            mostrarLista(encontrados);
+    beepCorrecto();
+    mostrarLista(encontrados);
 
-        }
+}
 
     }
 
 });
 /*==================================================
-BUSCAR CÓDIGO ESCANEADO
+BEEP
 ==================================================*/
+
+/*==================================================
+BEEP
+==================================================*/
+
+let audioCtx = null;
+
+function beep(frecuencia = 1000, duracion = 150){
+
+    try{
+
+        if(!audioCtx){
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        if(audioCtx.state === "suspended"){
+            audioCtx.resume();
+        }
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = "sine";
+        osc.frequency.value = frecuencia;
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+
+        osc.start();
+
+        osc.stop(audioCtx.currentTime + duracion/1000);
+
+    }catch(e){
+        console.log(e);
+    }
+
+}
+
+function beepCorrecto(){
+
+    beep(1100,120);
+
+}
+
+function beepError(){
+
+    beep(300,350);
+
+}
 /*==================================================
 BUSCAR CÓDIGO ESCANEADO
 ==================================================*/
@@ -758,13 +812,15 @@ function buscarCodigo(codigoLeido){
 
     if(producto){
 
-        mostrarProducto(producto);
+    beepCorrecto();
+    mostrarProducto(producto);
 
-    }else{
+}else{
 
-        mostrarProducto(null);
+    beepError();
+    mostrarProducto(null);
 
-    }
+}
 
 }
 /*==================================================
