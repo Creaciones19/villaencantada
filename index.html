@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -7,11 +6,10 @@
 <title>Productos</title>
 
 <style>
+/*==================================================
+RESET
+==================================================*/
 
-
-/* =========================
-   RESET
-========================= */
 *{
     margin:0;
     padding:0;
@@ -22,502 +20,315 @@
 body{
     background:#f2f4f7;
     color:#222;
+    min-height:100vh;
 }
 
-/* =========================
-   ENCABEZADO
-========================= */
+/*==================================================
+HEADER
+==================================================*/
 
 header{
-    position:sticky;
-    top:0;
-    z-index:1000;
+    background:#1565c0;
+    color:#fff;
+    text-align:center;
+    padding:18px;
+    font-size:30px;
+    font-weight:bold;
+    box-shadow:0 3px 10px rgba(0,0,0,.2);
+}
 
-    background:#ffffff;
-    padding:15px;
+/*==================================================
+BUSCADOR
+==================================================*/
+
+.buscador{
 
     display:flex;
-    flex-wrap:wrap;
     gap:10px;
-
-    align-items:center;
-
+    flex-wrap:wrap;
+    padding:15px;
+    background:#fff;
     box-shadow:0 2px 8px rgba(0,0,0,.15);
+
 }
 
-header input{
+#buscar{
 
     flex:1;
-    min-width:220px;
-
-    height:45px;
-
+    min-width:250px;
+    height:55px;
     border:none;
     outline:none;
-
-    border-radius:8px;
-
     background:#ececec;
-
-    padding-left:15px;
-
-    font-size:16px;
+    border-radius:10px;
+    padding:0 15px;
+    font-size:22px;
 
 }
 
-header button{
+button{
 
     border:none;
+    border-radius:10px;
     cursor:pointer;
-
-    padding:12px 18px;
-
-    border-radius:8px;
-
-    color:white;
-
-    font-size:15px;
-
+    color:#fff;
+    font-size:20px;
+    padding:15px 20px;
     transition:.2s;
 
 }
 
-header button:hover{
+button:hover{
 
     transform:scale(1.03);
 
 }
 
-#btnBuscar{
-
-    background:#2196F3;
-
-}
-
 #btnEscanear{
 
-    background:#4CAF50;
-
-}
-
-#btnAgregar{
-
-    background:#ff9800;
+    background:#43a047;
 
 }
 
 #btnCerrar{
 
-    background:#f44336;
-
+    background:#d32f2f;
     display:none;
 
 }
 
-#btnLimpiar{
-
-    background:#607d8b;
-
-}
-
-#contador{
-
-    margin-left:auto;
-
-    font-weight:bold;
-
-    font-size:18px;
-
-}
-
-/* =========================
-   CAMARA
-========================= */
+/*==================================================
+CAMARA
+==================================================*/
 
 #reader{
 
-    width:100%;
-    max-width:600px;
+    width:95%;
+    max-width:700px;
 
     margin:20px auto;
 
     display:none;
 
+    border-radius:15px;
+
     overflow:hidden;
 
-    border-radius:15px;
+    background:#000;
 
     box-shadow:0 0 15px rgba(0,0,0,.25);
 
 }
 
-/* =========================
-   CONTENEDOR
-========================= */
 
-#contenedor{
-
-    display:grid;
-
-    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-
-    gap:20px;
-
-    padding:20px;
-
-}
-
-/* =========================
-   TARJETAS
-========================= */
-
-.card{
-
-    background:white;
-
-    border-radius:12px;
-
-    overflow:hidden;
-
-    cursor:pointer;
-
-    transition:.25s;
-
-    box-shadow:0 2px 8px rgba(0,0,0,.15);
-
-}
-
-.card:hover{
-
-    transform:translateY(-5px);
-
-}
-
-.card img{
+#reader video{
 
     width:100%;
-
-    height:180px;
-
+    height:400px;
+    display:block;
     object-fit:cover;
 
-    background:#ddd;
-
 }
+/*==================================================
+RESULTADO
+==================================================*/
 
-.card-body{
-
-    padding:15px;
-
-}
-
-.card h3{
-
-    margin-bottom:8px;
-
-    font-size:18px;
-
-}
-
-.card p{
-
-    margin:5px 0;
-
-    font-size:15px;
-
-}
-
-/* =========================
-   MODAL
-========================= */
-
-.modal{
-
-    position:fixed;
-
-    inset:0;
-
-    background:rgba(0,0,0,.55);
-
-    display:none;
-
-    justify-content:center;
-
-    align-items:center;
-
-    z-index:9999;
-
-}
-
-.modal-content{
+#resultado{
 
     width:95%;
-
-    max-width:500px;
-
-    background:white;
-
-    border-radius:12px;
-
-    padding:20px;
-
-    animation:abrir .25s;
-
-}
-
-@keyframes abrir{
-
-from{
-
-transform:scale(.8);
-
-opacity:0;
-
-}
-
-to{
-
-transform:scale(1);
-
-opacity:1;
-
-}
-
-}
-
-.modal-content img{
-
-    width:100%;
-
-    height:260px;
-
-    object-fit:contain;
-
-    background:#eee;
-
-    margin-bottom:15px;
-
-}
-
-.modal-content h2{
-
-    margin-bottom:10px;
-
-}
-
-.modal-content p{
-
-    margin:10px 0;
-
-}
-
-/* =========================
-   BOTONES MODAL
-========================= */
-
-.modal-botones{
-
-    display:flex;
-
-    gap:10px;
-
-    margin-top:20px;
-
-}
-
-.modal-botones button{
-
-    flex:1;
-
-    border:none;
-
-    padding:12px;
-
-    border-radius:8px;
-
-    color:white;
-
-    cursor:pointer;
-
-    font-size:15px;
-
-}
-
-#editar{
-
-    background:#ff9800;
-
-}
-
-#eliminar{
-
-    background:#e53935;
-
-}
-
-#cerrar{
-
-    background:#607d8b;
-
-}
-
-/* =========================
-   FORMULARIO
-========================= */
-
-#formulario{
-
-    display:none;
-
-    position:fixed;
-
-    inset:0;
-
-    background:rgba(0,0,0,.6);
-
-    justify-content:center;
-
-    align-items:center;
-
-    z-index:99999;
-
-}
-
-.form-content{
-
-    background:white;
-
-    width:95%;
-
-    max-width:500px;
-
-    border-radius:12px;
-
-    padding:20px;
-
-}
-
-.form-content h2{
-
-    margin-bottom:20px;
-
-}
-
-.form-content input{
-
-    width:100%;
-
-    margin-bottom:15px;
-
-    height:45px;
-
-    border:none;
-
-    background:#ececec;
-
-    border-radius:8px;
-
-    padding-left:12px;
-
-    font-size:16px;
-
-}
-
-.form-botones{
-
-    display:flex;
-
-    gap:10px;
-
-}
-
-.form-botones button{
-
-    flex:1;
-
-    border:none;
-
-    padding:12px;
-
-    color:white;
-
-    border-radius:8px;
-
-    cursor:pointer;
-
-}
-
-#guardar{
-
-    background:#4CAF50;
-
-}
-
-#cancelar{
-
-    background:#f44336;
-
-}
-
-/* =========================
-   MENSAJE
-========================= */
-
-#mensaje{
-
+    max-width:700px;
+    margin:20px auto;
+    background:#fff;
+    border-radius:15px;
+    box-shadow:0 2px 12px rgba(0,0,0,.15);
+    padding:25px;
     text-align:center;
 
-    padding:25px;
+}
 
-    font-size:20px;
+#foto{
 
-    color:#777;
+    width:260px;
+    height:260px;
+    margin:auto;
+    display:block;
+    object-fit:contain;
+    background:#eee;
+    border-radius:10px;
 
 }
 
-/* =========================
-   RESPONSIVE
-========================= */
+#nombre{
+
+    margin-top:20px;
+    font-size:34px;
+    font-weight:bold;
+
+}
+
+#precio{
+
+    margin-top:15px;
+    font-size:55px;
+    color:#2e7d32;
+    font-weight:bold;
+
+}
+
+#codigo{
+
+    margin-top:10px;
+    font-size:22px;
+    color:#666;
+
+}
+
+/*==================================================
+NO ENCONTRADO
+==================================================*/
+
+#noEncontrado{
+
+    display:none;
+    margin-top:25px;
+    font-size:40px;
+    color:#d32f2f;
+    font-weight:bold;
+
+}
+
+/*==================================================
+LISTA
+==================================================*/
+
+#lista{
+
+    width:95%;
+    max-width:700px;
+    margin:20px auto;
+    display:none;
+
+}
+
+.item{
+
+    display:flex;
+    align-items:center;
+    gap:15px;
+    background:#fff;
+    border-radius:10px;
+    padding:10px;
+    margin-bottom:10px;
+    cursor:pointer;
+    box-shadow:0 2px 8px rgba(0,0,0,.15);
+    transition:.2s;
+
+}
+
+.item:hover{
+
+    transform:scale(1.02);
+
+}
+
+.item img{
+
+    width:70px;
+    height:70px;
+    object-fit:contain;
+    background:#eee;
+    border-radius:8px;
+
+}
+
+.itemNombre{
+
+    flex:1;
+    font-size:20px;
+    font-weight:bold;
+
+}
+
+.itemPrecio{
+
+    font-size:26px;
+    color:#2e7d32;
+    font-weight:bold;
+
+}
+
+#btnLimpiar{
+
+    background:#757575;
+
+}
+
+/*==================================================
+RESPONSIVE
+==================================================*/
 
 @media(max-width:700px){
 
-header{
+    header{
 
-    flex-direction:column;
+        font-size:22px;
 
-}
+    }
 
-header input{
+    #buscar{
 
-    width:100%;
+        font-size:18px;
 
-}
+    }
 
-header button{
+    button{
 
-    width:100%;
+        width:100%;
 
-}
+    }
 
-#contador{
+    #foto{
 
-    width:100%;
+        width:180px;
+        height:180px;
 
-    text-align:center;
+    }
 
-}
+    #nombre{
 
-.card img{
+        font-size:26px;
 
-    height:160px;
+    }
 
-}
+    #precio{
 
-.modal-content img{
+        font-size:42px;
 
-    height:220px;
+    }
 
-}
+    #codigo{
+
+        font-size:18px;
+
+    }
+
+    #noEncontrado{
+
+        font-size:30px;
+
+    }
+
+    .itemNombre{
+
+        font-size:18px;
+
+    }
+
+    .itemPrecio{
+
+        font-size:22px;
+
+    }
 
 }
 
@@ -542,256 +353,108 @@ header button{
 }
 </style>
 
-
 </head>
-
-<body>
-
-<!-- ===========================================
-ENCABEZADO
-=========================================== -->
 <nav class="menu">
-    <a href="index.html">⚙ Administración</a>
-    <a href="verificador.html">💲 Verificador</a>
+    <a href="index.html">💲 Verificador</a>
+    <a href="index2.html">⚙ Administración</a>
+    
    
 </nav>
+<body>
+
 <header>
-
-<input
-type="text"
-id="buscar"
-placeholder="🔍 Buscar por nombre o código..."
-autocomplete="off">
-
-<button id="btnBuscar">
-🔍 Buscar
-</button>
-
-<button id="btnEscanear">
-📷 Escanear
-</button>
-
-<button id="btnAgregar">
-➕ Agregar
-</button>
-
-<button id="btnCerrar">
-📷 Cerrar cámara
-</button>
-
-<button id="btnLimpiar">
-🧹 Borrar
-</button>
-
-<div id="contador">
-
-📦 0 Productos
-
-</div>
-
+💲 VERIFICADOR DE PRECIOS
 </header>
 
-<!-- ===========================================
-CAMARA ZXING
-=========================================== -->
+<div class="buscador">
+
+    <input
+        type="text"
+        id="buscar"
+        placeholder="Escriba o escanee un código o nombre..."
+        autocomplete="off">
+
+    <button id="btnEscanear">
+        📷 Escanear
+    </button>
+
+
+        <button id="btnLimpiar">
+    🗑 Limpiar
+    </button>
+
+    <button id="btnCerrar">
+        ❌ Cerrar cámara
+    </button>
+
+</div>
 
 <video
     id="reader"
     autoplay
     playsinline
-    muted
-    style="
-        width:100%;
-        max-width:600px;
-        display:none;
-        border-radius:15px;
-    ">
+    muted>
 </video>
 
-<!-- ===========================================
-MENSAJE
-=========================================== -->
+<div id="resultado">
 
-<div id="mensaje">
+    <img
+        id="foto"
+        src="https://via.placeholder.com/300x300?text=Producto"
+        alt="Producto">
 
-Cargando productos...
+    <div id="nombre">
+        Escanee un producto
+    </div>
 
-</div>
+    <div id="precio">
+        --
+    </div>
 
-<!-- ===========================================
-LISTA PRODUCTOS
-=========================================== -->
+    <div id="codigo">
+        Esperando búsqueda...
+    </div>
 
-<div id="contenedor"></div>
-
-<!-- ===========================================
-MODAL PRODUCTO
-=========================================== -->
-
-<div class="modal" id="modal">
-
-<div class="modal-content">
-
-<img
-id="modalImagen"
-src=""
-alt="">
-
-<h2 id="modalNombre">
-
-Nombre
-
-</h2>
-
-<p>
-
-<b>Código:</b>
-
-<span id="modalCodigo"></span>
-
-</p>
-
-<p>
-
-<b>Precio:</b>
-
-$
-
-<span id="modalPrecio"></span>
-
-</p>
-
-<p>
-
-<b>Imagen:</b>
-
-<span id="modalArchivo"></span>
-
-</p>
-
-<div class="modal-botones">
-
-<button id="editar">
-
-✏ Editar
-
-</button>
-
-<button id="eliminar">
-
-🗑 Eliminar
-
-</button>
-
-<button id="cerrar">
-
-❌ Cerrar
-
-</button>
+    <div id="noEncontrado">
+        ❌ PRODUCTO NO ENCONTRADO
+    </div>
 
 </div>
 
-</div>
+<div id="lista"></div>
 
-</div>
-
-<!-- ===========================================
-FORMULARIO
-=========================================== -->
-
-<div id="formulario">
-
-<div class="form-content">
-
-<h2 id="tituloFormulario">
-
-Agregar producto
-
-</h2>
-
-<input
-type="text"
-id="nombre"
-placeholder="Nombre">
-
-<input
-type="text"
-id="codigo"
-placeholder="Código">
-
-<input
-type="number"
-id="precio"
-placeholder="Precio">
-
-<input
-type="text"
-id="imagen"
-placeholder="URL o nombre de la imagen">
-
-<div class="form-botones">
-
-<button id="guardar">
-
-Guardar
-
-</button>
-
-<button id="cancelar">
-
-Cancelar
-
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-<!-- ===========================================
-SONIDO ESCANEO
-=========================================== -->
-
-
-
-<!-- ===========================================
-ZXING
-=========================================== -->
 <script src="https://unpkg.com/@zxing/library@latest"></script>
 
 <script type="module">
+    /*==================================================
+FIREBASE
+==================================================*/
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-
 
 import {
     getFirestore,
     collection,
-    getDocs,
-    addDoc,
-    updateDoc,
-    deleteDoc,
-    doc
+    getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-/*==========================
-FIREBASE
-==========================*/
+/*==================================================
+CONFIGURACIÓN FIREBASE
+==================================================*/
 
 const firebaseConfig = {
 
-    apiKey: "AIzaSyBEHWiEWstdu6r2D0i4S3CAu2Eyv1q9aaQ",
+    apiKey:"AIzaSyBEHWiEWstdu6r2D0i4S3CAu2Eyv1q9aaQ",
 
-    authDomain: "tienda-abarroteslamaravilla.firebaseapp.com",
+    authDomain:"tienda-abarroteslamaravilla.firebaseapp.com",
 
-    projectId: "tienda-abarroteslamaravilla",
+    projectId:"tienda-abarroteslamaravilla",
 
-    storageBucket: "tienda-abarroteslamaravilla.firebasestorage.app",
+    storageBucket:"tienda-abarroteslamaravilla.firebasestorage.app",
 
-    messagingSenderId: "1095327917170",
+    messagingSenderId:"1095327917170",
 
-    appId: "1:1095327917170:web:a3dab096621d695b6e0eeb"
+    appId:"1:1095327917170:web:a3dab096621d695b6e0eeb"
 
 };
 
@@ -799,990 +462,543 @@ const app = initializeApp(firebaseConfig);
 
 const db = getFirestore(app);
 
-/*==========================
+/*==================================================
 VARIABLES
-==========================*/
+==================================================*/
 
 let productos = [];
 
-let productoActual = null;
+const hints = new Map();
 
-let editando = false;
+hints.set(
+    ZXing.DecodeHintType.POSSIBLE_FORMATS,
+    [
+        ZXing.BarcodeFormat.EAN_13,
+        ZXing.BarcodeFormat.EAN_8,
+        ZXing.BarcodeFormat.CODE_128,
+        ZXing.BarcodeFormat.UPC_A
+    ]
+);
 
-
+let codeReader = new ZXing.BrowserMultiFormatReader(hints);
 
 let camaraAbierta = false;
 
-/*==========================
+
+let escribiendo = false;
+
+
+/*==================================================
 ELEMENTOS
-==========================*/
+==================================================*/
 
 const buscar = document.getElementById("buscar");
 
-const btnBuscar = document.getElementById("btnBuscar");
-
 const btnEscanear = document.getElementById("btnEscanear");
-
-const btnCerrar = document.getElementById("btnCerrar");
-
-const btnAgregar = document.getElementById("btnAgregar");
 
 const btnLimpiar = document.getElementById("btnLimpiar");
 
-const contenedor = document.getElementById("contenedor");
-
-const contador = document.getElementById("contador");
-
-const mensaje = document.getElementById("mensaje");
+const btnCerrar = document.getElementById("btnCerrar");
 
 const reader = document.getElementById("reader");
 
-/*==========================
-MODAL
-==========================*/
-
-const modal = document.getElementById("modal");
-
-const modalImagen = document.getElementById("modalImagen");
-
-const modalNombre = document.getElementById("modalNombre");
-
-const modalCodigo = document.getElementById("modalCodigo");
-
-const modalPrecio = document.getElementById("modalPrecio");
-
-const modalArchivo = document.getElementById("modalArchivo");
-
-const editar = document.getElementById("editar");
-
-const eliminar = document.getElementById("eliminar");
-
-const cerrar = document.getElementById("cerrar");
-
-/*==========================
-FORMULARIO
-==========================*/
-
-const formulario = document.getElementById("formulario");
-
-const tituloFormulario = document.getElementById("tituloFormulario");
+const foto = document.getElementById("foto");
 
 const nombre = document.getElementById("nombre");
 
-const codigo = document.getElementById("codigo");
-
 const precio = document.getElementById("precio");
 
-const imagen = document.getElementById("imagen");
+const codigo = document.getElementById("codigo");
 
-const guardar = document.getElementById("guardar");
+const lista = document.getElementById("lista");
 
-const cancelar = document.getElementById("cancelar");
+const noEncontrado = document.getElementById("noEncontrado");
 
-/*==========================
-SONIDO
-==========================*/
-
-
- /* AGREGA SONIDO */   
-function beep() {
-
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-
-    const osc = ctx.createOscillator();
-
-    const gain = ctx.createGain();
-
-    osc.type = "square";
-    osc.frequency.value = 1200;
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    gain.gain.value = 0.2;
-
-    osc.start();
-
-    setTimeout(() => {
-
-        osc.stop();
-        ctx.close();
-
-    }, 80);
-
-}
-/*==========================
-ACTUALIZAR CONTADOR
-==========================*/
-
-function actualizarContador(lista = productos){
-
-    contador.textContent =
-    "📦 " + lista.length + " Productos";
-
-}
-
-/*==========================
-MENSAJE
-==========================*/
-
-function mostrarMensaje(texto){
-
-    mensaje.textContent = texto;
-
-    mensaje.style.display = "block";
-
-}
-
-function ocultarMensaje(){
-
-    mensaje.style.display = "none";
-
-}
-
-/*==========================
-ABRIR FORMULARIO
-==========================*/
-
-/*==========================
-ABRIR FORMULARIO
-==========================*/
-
-function abrirFormulario(){
-
-    formulario.style.display = "flex";
-
-    nombre.focus();
-
-    nombre.select();
-
-}
-/*==========================
-CERRAR FORMULARIO
-==========================*/
-
-function cerrarFormulario(){
-
-    formulario.style.display = "none";
-
-}
-
-/*==========================
-LIMPIAR FORMULARIO
-==========================*/
-
-function limpiarFormulario(){
-
-    nombre.value = "";
-
-    codigo.value = "";
-
-    precio.value = "";
-
-    imagen.value = "";
-
-    editando = false;
-
-    productoActual = null;
-
-    tituloFormulario.textContent = "Agregar producto";
-
-}
-
-/*==========================
-ABRIR MODAL
-==========================*/
-
-function abrirModal(producto){
-
-    productoActual = producto;
-
-    modalImagen.src = producto.imagen;
-
-    modalNombre.textContent = producto.nombre;
-
-    modalCodigo.textContent = producto.codigo;
-
-    modalPrecio.textContent = producto.precio;
-
-    modalArchivo.textContent = producto.imagen;
-
-    modal.style.display = "flex";
-
-}
-
-/*==========================
-CERRAR MODAL
-==========================*/
-
-function cerrarModal(){
-
-    modal.style.display = "none";
-
-}
-
-/*==========================
-SONIDO
-==========================*/
-
-
-/*==========================
-VIBRACIÓN
-==========================*/
-
-function vibrar(){
-
-    if(navigator.vibrate){
-
-        navigator.vibrate(200);
-
-    }
-
-}
 /*==================================================
-CARGAR PRODUCTOS DESDE FIREBASE
+CARGAR PRODUCTOS
 ==================================================*/
 
 async function cargarProductos(){
 
-    try{
+    productos = [];
 
-        mostrarMensaje("Cargando productos...");
+    const consulta = await getDocs(collection(db,"productos"));
 
-        productos = [];
+    consulta.forEach(doc=>{
 
-        const consulta = await getDocs(
-            collection(db,"productos")
-        );
+        productos.push({
 
-        consulta.forEach(documento=>{
+            id:doc.id,
 
-            productos.push({
-
-                id: documento.id,
-
-                ...documento.data()
-
-            });
+            ...doc.data()
 
         });
-
-        productos.sort((a,b)=>{
-
-            const n1 = (a.nombre || "").toLowerCase();
-
-            const n2 = (b.nombre || "").toLowerCase();
-
-            return n1.localeCompare(n2);
-
-        });
-
-        actualizarContador(productos);
-
-        renderProductos(productos);
-
-    }
-
-    catch(error){
-
-        console.error(error);
-
-        mostrarMensaje("Error cargando productos");
-
-    }
-
-}
-
-/*==================================================
-RENDER RÁPIDO
-==================================================*/
-
-function renderProductos(lista){
-
-    contenedor.innerHTML="";
-
-    if(lista.length===0){
-
-        mostrarMensaje("No hay productos");
-
-        return;
-
-    }
-
-    ocultarMensaje();
-
-    let indice = 0;
-
-    const bloque = 20;
-
-    function pintar(){
-
-        const fragment = document.createDocumentFragment();
-
-        for(
-
-            let i=0;
-
-            i<bloque && indice<lista.length;
-
-            i++,indice++
-
-        ){
-
-            const producto = lista[indice];
-
-            const tarjeta = crearTarjeta(producto);
-
-            fragment.appendChild(tarjeta);
-
-        }
-
-        contenedor.appendChild(fragment);
-
-        if(indice<lista.length){
-
-            requestAnimationFrame(pintar);
-
-        }
-
-    }
-
-    pintar();
-
-}
-
-/*==================================================
-CREAR TARJETA
-==================================================*/
-
-function crearTarjeta(producto){
-
-    const div = document.createElement("div");
-
-    div.className="card";
-
-    let foto = producto.imagen;
-
-    if(!foto){
-
-        foto="https://via.placeholder.com/300x300?text=Sin+Imagen";
-
-    }
-
-    div.innerHTML=`
-
-        <img
-        src="${foto}"
-        loading="lazy">
-
-        <div class="card-body">
-
-            <h3>
-
-                ${producto.nombre}
-
-            </h3>
-
-            <p>
-
-                Código:
-                ${producto.codigo}
-
-            </p>
-
-            <p>
-
-                Precio:
-                $${producto.precio}
-
-            </p>
-
-        </div>
-
-    `;
-
-    div.onclick=()=>{
-
-        abrirModal(producto);
-
-    };
-
-    return div;
-
-}
-
-/*==================================================
-INICIAR
-==================================================*/
-
-window.addEventListener(
-
-"load",
-
-()=>{
-
-    cargarProductos();
-
-    buscar.focus();
-
-}
-
-);
-
-/*==================================================
-EVENTOS
-==================================================*/
-
-// Abrir formulario para agregar
-btnAgregar.onclick = () => {
-
-    limpiarFormulario();
-
-    abrirFormulario();
-
-};
-
-// Cancelar formulario
-cancelar.onclick = () => {
-
-    cerrarFormulario();
-
-};
-
-// Cerrar modal
-cerrar.onclick = () => {
-
-    cerrarModal();
-
-};
-
-// Cerrar modal al tocar fuera
-modal.onclick = (e) => {
-
-    if (e.target === modal) {
-
-        cerrarModal();
-
-    }
-
-};
-
-/*==================================================
-EDITAR
-==================================================*/
-
-editar.onclick = () => {
-
-    if (!productoActual) return;
-
-    editando = true;
-
-    nombre.value = productoActual.nombre;
-    codigo.value = productoActual.codigo;
-    precio.value = productoActual.precio;
-    imagen.value = productoActual.imagen || "";
-
-    tituloFormulario.textContent = "Editar producto";
-
-    cerrarModal();
-
-    abrirFormulario();
-
-};
-
-/*==================================================
-GUARDAR
-==================================================*/
-/*==================================================
-GUARDAR
-==================================================*/
-
-guardar.onclick = async () => {
-
-    if (
-        nombre.value.trim() === "" ||
-        codigo.value.trim() === ""
-    ) {
-        alert("Complete nombre y código.");
-        return;
-    }
-
-    // Buscar si el código ya existe
-    const codigoNuevo = codigo.value.trim();
-
-    const repetido = productos.find(p =>
-
-        p.codigo === codigoNuevo &&
-
-        (!editando || p.id !== productoActual.id)
-
-    );
-
-    if (repetido) {
-
-        alert("Ese código ya existe.");
-
-        codigo.focus();
-
-        return;
-
-    }
-
-    const datos = {
-
-        nombre: nombre.value.trim(),
-
-        codigo: codigoNuevo,
-
-        precio: Number(precio.value) || 0,
-
-        imagen: imagen.value.trim()
-
-    };
-
-    try {
-
-        if (editando) {
-
-            await updateDoc(
-
-                doc(db, "productos", productoActual.id),
-
-                datos
-
-            );
-
-        } else {
-
-            await addDoc(
-
-                collection(db, "productos"),
-
-                datos
-
-            );
-
-        }
-
-        cerrarFormulario();
-
-        limpiarFormulario();
-
-        cargarProductos();
-
-    } catch (error) {
-
-        console.error(error);
-
-        alert("Error al guardar.");
-
-    }
-
-};
-
-/*==================================================
-ELIMINAR
-==================================================*/
-
-eliminar.onclick = async () => {
-
-    if (!productoActual) return;
-
-    if (!confirm("¿Eliminar este producto?")) return;
-
-    try {
-
-        await deleteDoc(
-
-            doc(db, "productos", productoActual.id)
-
-        );
-
-        cerrarModal();
-
-        cargarProductos();
-
-    } catch (error) {
-
-        console.error(error);
-
-        alert("No se pudo eliminar.");
-
-    }
-
-};
-/*==================================================
-BUSCAR EN TIEMPO REAL
-==================================================*/
-
-function buscarProductos() {
-
-    const texto = buscar.value.trim().toLowerCase();
-
-    if (texto === "") {
-
-        renderProductos(productos);
-
-        actualizarContador(productos);
-
-        return;
-
-    }
-
-    const resultado = productos.filter(producto =>
-
-        (producto.nombre || "").toLowerCase().includes(texto) ||
-
-        (producto.codigo || "").toLowerCase().includes(texto)
-
-    );
-
-    renderProductos(resultado);
-
-    actualizarContador(resultado);
-
-}
-
-buscar.addEventListener("input", buscarProductos);
-
-btnBuscar.onclick = buscarProductos;
-/*==================================================
-BOTÓN LIMPIAR
-==================================================*/
-
-btnLimpiar.onclick = () => {
-
-    buscar.value = "";
-
-    renderProductos(productos);
-
-    actualizarContador(productos);
-
-    buscar.focus();
-
-};
-/*==================================================
-ENTER PARA GUARDAR
-==================================================*/
-
-formulario.addEventListener("keydown", e => {
-
-    if (e.key === "Enter") {
-
-        e.preventDefault();
-
-        guardar.click();
-
-    }
-
-});
-
-/*==================================================
-ENTER CAMBIA AL SIGUIENTE CAMPO
-==================================================*/
-
-const campos = [nombre, codigo, precio, imagen];
-
-campos.forEach((campo, indice) => {
-
-    campo.addEventListener("keydown", e => {
-
-        if (e.key !== "Enter") return;
-
-        e.preventDefault();
-
-        if (indice < campos.length - 1) {
-
-            campos[indice + 1].focus();
-
-        } else {
-
-            guardar.click();
-
-        }
 
     });
 
+    console.log("Productos:",productos.length);
+
+}
+
+window.addEventListener("load",async()=>{
+
+    await cargarProductos();
+
+    buscar.focus();
+
 });
 /*==================================================
-ESC PARA CERRAR
+MOSTRAR PRODUCTO
 ==================================================*/
 
-document.addEventListener("keydown", e => {
+function mostrarProducto(producto){
 
-    if (e.key === "Escape") {
+    lista.style.display="none";
+    lista.innerHTML="";
+    noEncontrado.style.display="none";
 
-        cerrarFormulario();
+    if(!producto){
 
-        cerrarModal();
+        foto.src="https://via.placeholder.com/300x300?text=Sin+Imagen";
+
+        nombre.textContent="Producto no encontrado";
+
+        precio.textContent="";
+
+        codigo.textContent="";
+
+        noEncontrado.style.display="block";
+
+        return;
+
+    }
+
+    foto.src=producto.imagen || "https://via.placeholder.com/300x300?text=Sin+Imagen";
+
+    nombre.textContent=producto.nombre;
+
+    precio.textContent="$"+Number(producto.precio).toFixed(2);
+
+    codigo.textContent="Código: "+producto.codigo;
+
+}
+/*==================================================
+BUSCAR PRODUCTO
+==================================================*/
+function buscarProducto(texto){
+
+    texto = texto.trim().toLowerCase();
+
+    if(texto===""){
+
+        lista.style.display="none";
+        lista.innerHTML="";
+
+        foto.src="https://via.placeholder.com/300x300?text=Producto";
+        nombre.textContent="Escanee un producto";
+        precio.textContent="--";
+        codigo.textContent="Esperando búsqueda...";
+        noEncontrado.style.display="none";
+
+        return;
+    }
+
+    const encontrados = productos.filter(producto =>
+
+        String(producto.codigo).toLowerCase().includes(texto) ||
+
+        String(producto.nombre).toLowerCase().includes(texto)
+
+    );
+
+    if(encontrados.length > 0){
+
+        mostrarLista(encontrados);
+
+    }else{
+
+        // Mientras escribe NO mostrar "Producto no encontrado"
+        lista.style.display = "none";
+        lista.innerHTML = "";
+
+    }
+
+}
+/*==================================================
+MOSTRAR LISTA
+==================================================*/
+
+function mostrarLista(resultado){
+
+    lista.innerHTML="";
+
+if(resultado.length===0){
+
+    lista.style.display="none";
+    lista.innerHTML="";
+
+    return;
+
+}
+    if(resultado.length===1){
+
+        mostrarProducto(resultado[0]);
+
+        return;
+
+    }
+
+    lista.style.display="block";
+
+    resultado.forEach(producto=>{
+
+        const div=document.createElement("div");
+
+        div.className="item";
+
+        div.innerHTML=`
+
+            <img src="${producto.imagen || 'https://via.placeholder.com/150'}">
+
+            <div class="itemNombre">
+
+                ${producto.nombre}
+
+            </div>
+
+            <div class="itemPrecio">
+
+                $${Number(producto.precio).toFixed(2)}
+
+            </div>
+
+        `;
+
+        div.onclick=()=>{
+
+            mostrarProducto(producto);
+
+        };
+
+        lista.appendChild(div);
+
+    });
+
+}
+/*==================================================
+BUSCAR AL ESCRIBIR
+==================================================*/
+
+buscar.addEventListener("input",()=>{
+
+    escribiendo = true;
+
+    reader.style.display = "none";
+
+    buscarProducto(buscar.value);
+
+});
+/*==================================================
+ENTER (PISTOLA O TECLADO)
+==================================================*/
+buscar.addEventListener("keydown",(e)=>{
+
+    if(e.key==="Enter"){
+
+        e.preventDefault();
+
+        const texto = buscar.value.trim().toLowerCase();
+
+        const encontrados = productos.filter(producto =>
+
+            String(producto.codigo).toLowerCase().includes(texto) ||
+
+            String(producto.nombre).toLowerCase().includes(texto)
+
+        );
+
+     if(encontrados.length===0){
+
+    beepError();
+    mostrarProducto(null);
+
+}else{
+
+    beepCorrecto();
+    mostrarLista(encontrados);
+
+}
 
     }
 
 });
 /*==================================================
-ESCANEAR CÓDIGO
+BEEP
 ==================================================*/
+
 /*==================================================
-ESCÁNER UNIVERSAL
-Teléfono + Tablet + Computadora + Pistola
+BEEP
 ==================================================*/
-let codeReader = null;
-let escaneado = false;
 
-btnEscanear.onclick = async () => {
+let audioCtx = null;
 
-    if (camaraAbierta) return;
+function beep(frecuencia = 1000, duracion = 150){
 
-    escaneado = false;
+    try{
 
-    try {
+        if(!audioCtx){
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
 
-        reader.style.display = "block";
-        btnCerrar.style.display = "inline-block";
+        if(audioCtx.state === "suspended"){
+            audioCtx.resume();
+        }
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = "sine";
+        osc.frequency.value = frecuencia;
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+
+        osc.start();
+
+        osc.stop(audioCtx.currentTime + duracion/1000);
+
+    }catch(e){
+        console.log(e);
+    }
+
+}
+
+function beepCorrecto(){
+
+    beep(1100,120);
+
+}
+
+function beepError(){
+
+    beep(300,350);
+
+}
+/*==================================================
+BUSCAR CÓDIGO ESCANEADO
+==================================================*/
+function buscarCodigo(codigoLeido){
+
+    codigoLeido = String(codigoLeido).trim();
+
+    if(codigoLeido === "") return;
+
+
+    escribiendo = false;
+
+    buscar.value = "";
+
+
+    lista.innerHTML = "";
+
+    lista.style.display = "none";
+
+
+    const producto = productos.find(
+        p => String(p.codigo) === codigoLeido
+    );
+
+
+    if(producto){
+
+    beepCorrecto();
+    mostrarProducto(producto);
+
+}else{
+
+    beepError();
+    mostrarProducto(null);
+
+}
+
+}
+/*==================================================
+INICIAR CÁMARA
+==================================================*/
+async function iniciarCamara(){
+
+    if(camaraAbierta) return;
+
+
+    try{
 
         camaraAbierta = true;
 
-       const hints = new Map();
 
-hints.set(
-    ZXing.DecodeHintType.POSSIBLE_FORMATS,
-   [
+        reader.style.display = "block";
 
-        // Supermercados (México)
-        ZXing.BarcodeFormat.EAN_13,
 
-        // Productos pequeños
-        ZXing.BarcodeFormat.EAN_8,
+        btnEscanear.style.display = "none";
 
-        // Etiquetas propias (Canva u otras)
-        ZXing.BarcodeFormat.CODE_128,
+        btnCerrar.style.display = "inline-block";
 
-        // ZXing.BarcodeFormat.UPC_A,   // Productos de EE.UU.
-        // ZXing.BarcodeFormat.UPC_E,   // UPC reducido
-        // ZXing.BarcodeFormat.CODE_39  // Uso industrial
 
-    ]
-);
+const dispositivos = await codeReader.listVideoInputDevices();
 
-codeReader =
-new ZXing.BrowserMultiFormatReader(hints);
+let camara = dispositivos[dispositivos.length - 1];
 
-        const devices = await codeReader.listVideoInputDevices();
+await codeReader.decodeFromConstraints(
 
-        if (devices.length === 0) {
+{
+    video:{
+        deviceId:{
+            exact: camara.deviceId
+        },
 
-            alert("No se encontró ninguna cámara.");
+        facingMode:"environment",
 
-            cerrarCamara();
+        width:{
+            ideal:1280
+        },
 
-            return;
-
+        height:{
+            ideal:720
         }
+    }
+},
 
-        // Usa la última cámara (normalmente la trasera)
-        const cameraId =
-    devices.length > 1
-        ? devices[devices.length - 1].deviceId
-        : devices[0].deviceId;
+"reader",
 
-        await codeReader.decodeFromVideoDevice(
+(resultado,error)=>{
 
-    cameraId,
+    if(resultado){
 
-    "reader",
-
-    (resultado, error) => {
-
-        if (!resultado || escaneado) return;
-
-        escaneado = true;
-
-        const codigoEscaneado =
-            (resultado.getText?.() || resultado.text).trim();
-
-        beep();
-        vibrar();
-
-        buscar.value = codigoEscaneado;
-
-        buscarProductos();
-
-        const producto = productos.find(
-    p => String(p.codigo).trim() === String(codigoEscaneado).trim()
-);
-
-      // Comparación anterior.
-// Si algún día la necesitas otra vez, puedes descomentarla.
-/*
-const producto = productos.find(
-    p => String(p.codigo).trim() === codigoEscaneado
-);
-*/
-        cerrarCamara();
-
-        if (producto) {
-
-            setTimeout(() => {
-
-                abrirModal(producto);
-
-            }, 300);
-
-        } else {
-
-            if (confirm("Producto no encontrado.\n\n¿Desea agregarlo?")) {
-
-                limpiarFormulario();
-
-                codigo.value = codigoEscaneado;
-
-                abrirFormulario();
-
-                nombre.focus();
-
-            }
-
-        }
+        buscarCodigo(resultado.getText());
 
     }
 
-);
-    } catch (error) {
+}
 
-        console.error(error);
-
-        alert(
-    "No fue posible abrir la cámara.\n\n" +
-    (error?.message || error)
 );
 
-        cerrarCamara();
+
+// ENFOQUE AUTOMÁTICO
+const video = document.querySelector("#reader video");
+
+if(video){
+
+    const track = video.srcObject.getVideoTracks()[0];
+
+    const capacidades = track.getCapabilities();
+
+    if(capacidades.focusMode){
+
+        track.applyConstraints({
+
+            advanced:[
+                {
+                    focusMode:"continuous"
+                }
+            ]
+
+        });
 
     }
 
-};
-function cerrarCamara() {
+}
 
-    if (codeReader) {
 
-        try {
+}catch(error){
 
-            codeReader.reset();
 
-        } catch (e) {}
+    console.log("Error cámara:",error);
 
-        codeReader = null;
-
-    }
 
     camaraAbierta = false;
-    escaneado = false;
+
 
     reader.style.display = "none";
+
+
+    btnEscanear.style.display = "inline-block";
+
+    btnCerrar.style.display = "none";
+
+
+}
+
+}
+/*==================================================
+CERRAR CÁMARA
+==================================================*/
+
+function cerrarCamara(){
+
+    if(!camaraAbierta) return;
+
+    codeReader.reset();
+
+    camaraAbierta = false;
+
+    reader.style.display = "none";
+
+    btnEscanear.style.display = "inline-block";
+
     btnCerrar.style.display = "none";
 
 }
 
-btnCerrar.onclick = cerrarCamara;
-
-buscar.addEventListener("keydown", (e) => {
-
-    if (e.key !== "Enter") return;
-
-    e.preventDefault();
-
-    const texto = buscar.value.trim();
-
-    if (!texto) return;
-
-    beep();
-    vibrar();
-
-    // Buscar por nombre o código
-    buscarProductos();
-
-    // Si escribió un código exacto, abrir el modal
-const producto = productos.find(
-    p => String(p.codigo).trim() === texto
-);
-
-if (producto) {
-
-    abrirModal(producto);
-
-} else {
-
-    if (confirm("Producto no encontrado.\n\n¿Desea agregarlo?")) {
-
-        limpiarFormulario();
-
-        // Si sólo tiene números, es un código
-        if (/^\d+$/.test(texto)) {
-
-            codigo.value = texto;
-            nombre.focus();
-
-        } else {
-
-            // Si tiene letras, es un nombre
-            nombre.value = texto;
-            codigo.focus();
-
-        }
-
-        abrirFormulario();
-
-    }
-
-}
-});
 /*==================================================
-FOCO AUTOMÁTICO PARA PISTOLA LECTORA
+BOTONES
 ==================================================*/
 
-// Al abrir la página
-window.addEventListener("load", () => {
+btnEscanear.addEventListener("click",()=>{
+
+    iniciarCamara();
+
+});
+
+btnCerrar.addEventListener("click",()=>{
+
+    cerrarCamara();
+
+});
+
+/*==================================================
+CERRAR CÁMARA AL SALIR
+==================================================*/
+
+window.addEventListener("beforeunload",()=>{
+
+    cerrarCamara();
+
+});
+
+/*==================================================
+BOTON LIMPAR PARA CUANDO SE HACE BUSQUEDA ESCRITA
+==================================================*/
+btnLimpiar.addEventListener("click",()=>{
+
+    buscar.value="";
+
+    lista.innerHTML="";
+    lista.style.display="none";
+
+    foto.src="https://via.placeholder.com/300x300?text=Producto";
+
+    nombre.textContent="Escanee un producto";
+
+    precio.textContent="--";
+
+    codigo.textContent="Esperando búsqueda...";
+
+    noEncontrado.style.display="none";
 
     buscar.focus();
 
 });
-
-// Si el usuario hace clic en cualquier parte,
-// vuelve el foco al buscador (excepto cuando escribe en formularios)
-document.addEventListener("click", (e) => {
-
-    if (
-        formulario.style.display === "flex" ||
-        modal.style.display === "flex"
-    ) return;
-
-    const etiqueta = e.target.tagName;
-
-    if (
-        etiqueta !== "INPUT" &&
-        etiqueta !== "TEXTAREA"
-    ) {
-
-        buscar.focus();
-
-    }
-
-});
-
-// Si la ventana vuelve a estar activa
-window.addEventListener("focus", () => {
-
-    if (
-        formulario.style.display !== "flex" &&
-        modal.style.display !== "flex"
-    ) {
-
-        buscar.focus();
-
-    }
-
-});
-</script>
-
+   </script>
 </body>
 </html>
