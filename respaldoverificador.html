@@ -105,33 +105,14 @@ CAMARA
 
     width:95%;
     max-width:700px;
-
     margin:20px auto;
-
     display:none;
-
     border-radius:15px;
-
     overflow:hidden;
-
-    background:#000;
-
     box-shadow:0 0 15px rgba(0,0,0,.25);
 
 }
 
-
-#reader video{
-
-    width:100%;
-
-    height:auto;
-
-    display:block;
-
-    object-fit:cover;
-
-}
 /*==================================================
 RESULTADO
 ==================================================*/
@@ -470,23 +451,11 @@ VARIABLES
 
 let productos = [];
 
-const hints = new Map();
-
-hints.set(
-    ZXing.DecodeHintType.POSSIBLE_FORMATS,
-    [
-        ZXing.BarcodeFormat.EAN_13,
-        ZXing.BarcodeFormat.EAN_8,
-        ZXing.BarcodeFormat.CODE_128,
-        ZXing.BarcodeFormat.UPC_A
-    ]
-);
-
-let codeReader = new ZXing.BrowserMultiFormatReader(hints);
+let codeReader = new ZXing.BrowserMultiFormatReader();
 
 let camaraAbierta = false;
 
-
+let ultimoCodigo = "";
 let escribiendo = false;
 
 /*==================================================
@@ -741,33 +710,32 @@ function buscarCodigo(codigoLeido){
 
     codigoLeido = String(codigoLeido).trim();
 
-    if(codigoLeido === "") return;
+    if(codigoLeido === ultimoCodigo) return;
 
+    ultimoCodigo = codigoLeido;
 
     escribiendo = false;
 
     buscar.value = "";
 
-
     lista.innerHTML = "";
-
     lista.style.display = "none";
 
+    reader.style.display = "block";
 
-    const producto = productos.find(
-        p => String(p.codigo) === codigoLeido
-    );
+   const producto = productos.find(
+    p => String(p.codigo) === codigoLeido
+);
 
+if(producto){
 
-    if(producto){
+    mostrarProducto(producto);
 
-        mostrarProducto(producto);
+}else{
 
-    }else{
+    mostrarProducto(null);
 
-        mostrarProducto(null);
-
-    }
+}
 
 }
 /*==================================================
@@ -777,45 +745,27 @@ async function iniciarCamara(){
 
     if(camaraAbierta) return;
 
+    camaraAbierta = true;
+
+    reader.style.display = "block";
+
+    btnEscanear.style.display = "none";
+
+    btnCerrar.style.display = "inline-block";
 
     try{
 
-        camaraAbierta = true;
+        await codeReader.decodeFromConstraints(
 
-
-        reader.style.display = "block";
-
-
-        btnEscanear.style.display = "none";
-
-        btnCerrar.style.display = "inline-block";
-
-
-        const dispositivos = await codeReader.listVideoInputDevices();
-
-
-        let camaraTrasera = dispositivos.find(d =>
-
-            d.label.toLowerCase().includes("back") ||
-
-            d.label.toLowerCase().includes("environment") ||
-
-            d.label.toLowerCase().includes("trasera")
-
-        );
-
-
-        let camara = camaraTrasera || dispositivos[0];
-
-
-        await codeReader.decodeFromVideoDevice(
-
-            camara.deviceId,
+            {
+                video:{
+                    facingMode:"environment"
+                }
+            },
 
             "reader",
 
             (resultado,error)=>{
-
 
                 if(resultado){
 
@@ -823,28 +773,15 @@ async function iniciarCamara(){
 
                 }
 
-
             }
 
         );
 
-
     }catch(error){
 
+        console.log(error);
 
-        console.log("Error cámara:",error);
-
-
-        camaraAbierta = false;
-
-
-        reader.style.display = "none";
-
-
-        btnEscanear.style.display = "inline-block";
-
-        btnCerrar.style.display = "none";
-
+        // NO cerrar la cámara automáticamente
 
     }
 
