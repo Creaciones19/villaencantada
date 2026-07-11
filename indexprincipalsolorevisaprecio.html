@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Productos</title>
+
+<style>
+/*==================================================
+RESET
+==================================================*/
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+    background:#f2f4f7;
+    color:#222;
+    min-height:100vh;
+}
+
+/*==================================================
+HEADER
+==================================================*/
+
+header{
+    background:#1565c0;
+    color:#fff;
+    text-align:center;
+    padding:18px;
+    font-size:30px;
+    font-weight:bold;
+    box-shadow:0 3px 10px rgba(0,0,0,.2);
+}
+
+/*==================================================
+BUSCADOR
+==================================================*/
+
+.buscador{
+
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    padding:15px;
+    background:#fff;
+    box-shadow:0 2px 8px rgba(0,0,0,.15);
+
+}
+
+#buscar{
+
+    flex:1;
+    min-width:250px;
+    height:55px;
+    border:none;
+    outline:none;
+    background:#ececec;
+    border-radius:10px;
+    padding:0 15px;
+    font-size:22px;
+
+}
+
+button{
+
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    color:#fff;
+    font-size:20px;
+    padding:15px 20px;
+    transition:.2s;
+
+}
+
+button:hover{
+
+    transform:scale(1.03);
+
+}
+
+#btnEscanear{
+
+    background:#43a047;
+
+}
+
+#btnCerrar{
+
+    background:#d32f2f;
+    display:none;
+
+}
+
+/*==================================================
+CAMARA
+==================================================*/
+
+#reader{
+
+    width:95%;
+    max-width:700px;
+    margin:20px auto;
+    display:none;
+    border-radius:15px;
+    overflow:hidden;
+    box-shadow:0 0 15px rgba(0,0,0,.25);
+
+}
+
+/*==================================================
+RESULTADO
+==================================================*/
+
+#resultado{
+
+    width:95%;
+    max-width:700px;
+    margin:20px auto;
+    background:#fff;
+    border-radius:15px;
+    box-shadow:0 2px 12px rgba(0,0,0,.15);
+    padding:25px;
+    text-align:center;
+
+}
+
+#foto{
+
+    width:260px;
+    height:260px;
+    margin:auto;
+    display:block;
+    object-fit:contain;
+    background:#eee;
+    border-radius:10px;
+
+}
+
+#nombre{
+
+    margin-top:20px;
+    font-size:34px;
+    font-weight:bold;
+
+}
+
+#precio{
+
+    margin-top:15px;
+    font-size:55px;
+    color:#2e7d32;
+    font-weight:bold;
+
+}
+
+#codigo{
+
+    margin-top:10px;
+    font-size:22px;
+    color:#666;
+
+}
+
+/*==================================================
+NO ENCONTRADO
+==================================================*/
+
+#noEncontrado{
+
+    display:none;
+    margin-top:25px;
+    font-size:40px;
+    color:#d32f2f;
+    font-weight:bold;
+
+}
+
+/*==================================================
+LISTA
+==================================================*/
+
+#lista{
+
+    width:95%;
+    max-width:700px;
+    margin:20px auto;
+    display:none;
+
+}
+
+.item{
+
+    display:flex;
+    align-items:center;
+    gap:15px;
+    background:#fff;
+    border-radius:10px;
+    padding:10px;
+    margin-bottom:10px;
+    cursor:pointer;
+    box-shadow:0 2px 8px rgba(0,0,0,.15);
+    transition:.2s;
+
+}
+
+.item:hover{
+
+    transform:scale(1.02);
+
+}
+
+.item img{
+
+    width:70px;
+    height:70px;
+    object-fit:contain;
+    background:#eee;
+    border-radius:8px;
+
+}
+
+.itemNombre{
+
+    flex:1;
+    font-size:20px;
+    font-weight:bold;
+
+}
+
+.itemPrecio{
+
+    font-size:26px;
+    color:#2e7d32;
+    font-weight:bold;
+
+}
+
+/*==================================================
+RESPONSIVE
+==================================================*/
+
+@media(max-width:700px){
+
+    header{
+
+        font-size:22px;
+
+    }
+
+    #buscar{
+
+        font-size:18px;
+
+    }
+
+    button{
+
+        width:100%;
+
+    }
+
+    #foto{
+
+        width:180px;
+        height:180px;
+
+    }
+
+    #nombre{
+
+        font-size:26px;
+
+    }
+
+    #precio{
+
+        font-size:42px;
+
+    }
+
+    #codigo{
+
+        font-size:18px;
+
+    }
+
+    #noEncontrado{
+
+        font-size:30px;
+
+    }
+
+    .itemNombre{
+
+        font-size:18px;
+
+    }
+
+    .itemPrecio{
+
+        font-size:22px;
+
+    }
+
+}
+</style>
+
+</head>
+
+<body>
+
+<header>
+💲 VERIFICADOR DE PRECIOS
+</header>
+
+<div class="buscador">
+
+    <input
+        type="text"
+        id="buscar"
+        placeholder="Escriba o escanee un código o nombre..."
+        autocomplete="off">
+
+    <button id="btnEscanear">
+        📷 Escanear
+    </button>
+
+    <button id="btnCerrar">
+        ❌ Cerrar cámara
+    </button>
+
+</div>
+
+<video
+    id="reader"
+    autoplay
+    playsinline
+    muted>
+</video>
+
+<div id="resultado">
+
+    <img
+        id="foto"
+        src="https://via.placeholder.com/300x300?text=Producto"
+        alt="Producto">
+
+    <div id="nombre">
+        Escanee un producto
+    </div>
+
+    <div id="precio">
+        --
+    </div>
+
+    <div id="codigo">
+        Esperando búsqueda...
+    </div>
+
+    <div id="noEncontrado">
+        ❌ PRODUCTO NO ENCONTRADO
+    </div>
+
+</div>
+
+<div id="lista"></div>
+
+<script src="https://unpkg.com/@zxing/library@latest"></script>
+
+<script type="module">
+    /*==================================================
+FIREBASE
+==================================================*/
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+
+import {
+    getFirestore,
+    collection,
+    getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+/*==================================================
+CONFIGURACIÓN FIREBASE
+==================================================*/
+
+const firebaseConfig = {
+
+    apiKey:"AIzaSyBEHWiEWstdu6r2D0i4S3CAu2Eyv1q9aaQ",
+
+    authDomain:"tienda-abarroteslamaravilla.firebaseapp.com",
+
+    projectId:"tienda-abarroteslamaravilla",
+
+    storageBucket:"tienda-abarroteslamaravilla.firebasestorage.app",
+
+    messagingSenderId:"1095327917170",
+
+    appId:"1:1095327917170:web:a3dab096621d695b6e0eeb"
+
+};
+
+const app = initializeApp(firebaseConfig);
+
+const db = getFirestore(app);
+
+/*==================================================
+VARIABLES
+==================================================*/
+
+let productos = [];
+
+let codeReader = new ZXing.BrowserMultiFormatReader();
+
+let camaraAbierta = false;
+
+let ultimoCodigo = "";
+
+/*==================================================
+ELEMENTOS
+==================================================*/
+
+const buscar = document.getElementById("buscar");
+
+const btnEscanear = document.getElementById("btnEscanear");
+
+const btnCerrar = document.getElementById("btnCerrar");
+
+const reader = document.getElementById("reader");
+
+const foto = document.getElementById("foto");
+
+const nombre = document.getElementById("nombre");
+
+const precio = document.getElementById("precio");
+
+const codigo = document.getElementById("codigo");
+
+const lista = document.getElementById("lista");
+
+const noEncontrado = document.getElementById("noEncontrado");
+
+/*==================================================
+CARGAR PRODUCTOS
+==================================================*/
+
+async function cargarProductos(){
+
+    productos = [];
+
+    const consulta = await getDocs(collection(db,"productos"));
+
+    consulta.forEach(doc=>{
+
+        productos.push({
+
+            id:doc.id,
+
+            ...doc.data()
+
+        });
+
+    });
+
+    console.log("Productos:",productos.length);
+
+}
+
+window.addEventListener("load",async()=>{
+
+    await cargarProductos();
+
+    buscar.focus();
+
+});
+/*==================================================
+MOSTRAR PRODUCTO
+==================================================*/
+
+function mostrarProducto(producto){
+
+    lista.style.display="none";
+    lista.innerHTML="";
+    noEncontrado.style.display="none";
+
+    if(!producto){
+
+        foto.src="https://via.placeholder.com/300x300?text=Sin+Imagen";
+
+        nombre.textContent="Producto no encontrado";
+
+        precio.textContent="";
+
+        codigo.textContent="";
+
+        noEncontrado.style.display="block";
+
+        return;
+
+    }
+
+    foto.src=producto.imagen || "https://via.placeholder.com/300x300?text=Sin+Imagen";
+
+    nombre.textContent=producto.nombre;
+
+    precio.textContent="$"+Number(producto.precio).toFixed(2);
+
+    codigo.textContent="Código: "+producto.codigo;
+
+}
+/*==================================================
+BUSCAR PRODUCTO
+==================================================*/
+
+function buscarProducto(texto){
+
+    texto = texto.trim().toLowerCase();
+
+    if(texto===""){
+
+        lista.style.display="none";
+        lista.innerHTML="";
+
+        foto.src="https://via.placeholder.com/300x300?text=Producto";
+        nombre.textContent="Escanee un producto";
+        precio.textContent="--";
+        codigo.textContent="Esperando búsqueda...";
+        noEncontrado.style.display="none";
+
+        return;
+    }
+
+    const encontrados = productos.filter(producto=>
+
+        String(producto.codigo).toLowerCase().includes(texto) ||
+
+        String(producto.nombre).toLowerCase().includes(texto)
+
+    );
+
+    mostrarLista(encontrados);
+
+}
+/*==================================================
+MOSTRAR LISTA
+==================================================*/
+
+function mostrarLista(resultado){
+
+    lista.innerHTML="";
+
+    if(resultado.length===0){
+
+        mostrarProducto(null);
+
+        return;
+
+    }
+
+    if(resultado.length===1){
+
+        mostrarProducto(resultado[0]);
+
+        return;
+
+    }
+
+    lista.style.display="block";
+
+    resultado.forEach(producto=>{
+
+        const div=document.createElement("div");
+
+        div.className="item";
+
+        div.innerHTML=`
+
+            <img src="${producto.imagen || 'https://via.placeholder.com/150'}">
+
+            <div class="itemNombre">
+
+                ${producto.nombre}
+
+            </div>
+
+            <div class="itemPrecio">
+
+                $${Number(producto.precio).toFixed(2)}
+
+            </div>
+
+        `;
+
+        div.onclick=()=>{
+
+            mostrarProducto(producto);
+
+        };
+
+        lista.appendChild(div);
+
+    });
+
+}
+/*==================================================
+BUSCAR AL ESCRIBIR
+==================================================*/
+
+buscar.addEventListener("focus", () => {
+
+    reader.style.display = "none";
+
+});
+
+buscar.addEventListener("blur", () => {
+
+    if(camaraAbierta){
+
+        reader.style.display = "block";
+
+    }
+
+});
+/*==================================================
+ENTER (PISTOLA O TECLADO)
+==================================================*/
+
+buscar.addEventListener("keydown",(e)=>{
+
+    if(e.key==="Enter"){
+
+        e.preventDefault();
+
+        buscarProducto(buscar.value);
+
+    }
+
+});
+/*==================================================
+BUSCAR CÓDIGO ESCANEADO
+==================================================*/
+/*==================================================
+BUSCAR CÓDIGO ESCANEADO
+==================================================*/
+function buscarCodigo(codigoLeido){
+
+    codigoLeido = String(codigoLeido).trim();
+
+    buscar.value = "";
+
+    lista.innerHTML = "";
+    lista.style.display = "none";
+
+    const producto = productos.find(
+        p => String(p.codigo) === codigoLeido
+    );
+
+    mostrarProducto(producto);
+
+    ultimoCodigo = codigoLeido;
+
+    setTimeout(()=>{
+        ultimoCodigo = "";
+    },150);
+
+}
+/*==================================================
+INICIAR CÁMARA
+==================================================*/
+async function iniciarCamara(){
+
+    if(camaraAbierta) return;
+
+    camaraAbierta = true;
+
+    reader.style.display = "block";
+
+    btnEscanear.style.display = "none";
+
+    btnCerrar.style.display = "inline-block";
+
+    try{
+
+        await codeReader.decodeFromConstraints(
+
+            {
+                video:{
+                    facingMode:"environment"
+                }
+            },
+
+            "reader",
+
+         (resultado,error)=>{
+
+    if(resultado){
+
+        const codigoLeido = resultado.getText();
+
+        if(codigoLeido !== ultimoCodigo){
+
+            buscarCodigo(codigoLeido);
+
+        }
+
+    }
+
+}
+
+        );
+
+    }catch(error){
+
+        console.log(error);
+
+        // NO cerrar la cámara automáticamente
+
+    }
+
+}
+/*==================================================
+CERRAR CÁMARA
+==================================================*/
+
+function cerrarCamara(){
+
+    if(!camaraAbierta) return;
+
+    codeReader.reset();
+
+    camaraAbierta = false;
+
+    reader.style.display = "none";
+
+    btnEscanear.style.display = "inline-block";
+
+    btnCerrar.style.display = "none";
+
+}
+
+/*==================================================
+BOTONES
+==================================================*/
+
+btnEscanear.addEventListener("click",()=>{
+
+    iniciarCamara();
+
+});
+
+btnCerrar.addEventListener("click",()=>{
+
+    cerrarCamara();
+
+});
+
+/*==================================================
+CERRAR CÁMARA AL SALIR
+==================================================*/
+
+window.addEventListener("beforeunload",()=>{
+
+    cerrarCamara();
+
+});
+   </script>
+</body>
+</html>
