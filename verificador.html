@@ -124,11 +124,8 @@ CAMARA
 #reader video{
 
     width:100%;
-
-    height:auto;
-
+    height:400px;
     display:block;
-
     object-fit:cover;
 
 }
@@ -791,62 +788,89 @@ async function iniciarCamara(){
         btnCerrar.style.display = "inline-block";
 
 
-        const dispositivos = await codeReader.listVideoInputDevices();
+const dispositivos = await codeReader.listVideoInputDevices();
 
+let camara = dispositivos[dispositivos.length - 1];
 
-        let camaraTrasera = dispositivos.find(d =>
+await codeReader.decodeFromConstraints(
 
-            d.label.toLowerCase().includes("back") ||
+{
+    video:{
+        deviceId:{
+            exact: camara.deviceId
+        },
 
-            d.label.toLowerCase().includes("environment") ||
+        facingMode:"environment",
 
-            d.label.toLowerCase().includes("trasera")
+        width:{
+            ideal:1280
+        },
 
-        );
+        height:{
+            ideal:720
+        }
+    }
+},
 
+"reader",
 
-        let camara = camaraTrasera || dispositivos[0];
+(resultado,error)=>{
 
+    if(resultado){
 
-        await codeReader.decodeFromVideoDevice(
-
-            camara.deviceId,
-
-            "reader",
-
-            (resultado,error)=>{
-
-
-                if(resultado){
-
-                    buscarCodigo(resultado.getText());
-
-                }
-
-
-            }
-
-        );
-
-
-    }catch(error){
-
-
-        console.log("Error cámara:",error);
-
-
-        camaraAbierta = false;
-
-
-        reader.style.display = "none";
-
-
-        btnEscanear.style.display = "inline-block";
-
-        btnCerrar.style.display = "none";
-
+        buscarCodigo(resultado.getText());
 
     }
+
+}
+
+);
+
+
+// ENFOQUE AUTOMÁTICO
+const video = document.querySelector("#reader video");
+
+if(video){
+
+    const track = video.srcObject.getVideoTracks()[0];
+
+    const capacidades = track.getCapabilities();
+
+    if(capacidades.focusMode){
+
+        track.applyConstraints({
+
+            advanced:[
+                {
+                    focusMode:"continuous"
+                }
+            ]
+
+        });
+
+    }
+
+}
+
+
+}catch(error){
+
+
+    console.log("Error cámara:",error);
+
+
+    camaraAbierta = false;
+
+
+    reader.style.display = "none";
+
+
+    btnEscanear.style.display = "inline-block";
+
+    btnCerrar.style.display = "none";
+
+
+}
 
 }
 /*==================================================
