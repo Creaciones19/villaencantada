@@ -100,11 +100,6 @@ header button:hover{
 
 }
 
-#btnConectar{
-
-    background:#673ab7;
-
-}
 #btnAgregar{
 
     background:#ff9800;
@@ -577,10 +572,6 @@ autocomplete="off">
 📷 Escanear
 </button>
 
-<button id="btnConectar">
-🔌 Conectar lector
-</button>
-
 <button id="btnAgregar">
 ➕ Agregar
 </button>
@@ -819,19 +810,9 @@ let productoActual = null;
 
 let editando = false;
 
+
+
 let camaraAbierta = false;
-
-//==========================
-// LECTOR SERIAL CP001
-//==========================
-
-let puertoSerial = null;
-
-let lectorSerialActivo = false;
-
-let ultimoCodigoSerial = "";
-
-let tiempoUltimaLecturaSerial = 0;
 
 /*==========================
 ELEMENTOS
@@ -842,8 +823,6 @@ const buscar = document.getElementById("buscar");
 const btnBuscar = document.getElementById("btnBuscar");
 
 const btnEscanear = document.getElementById("btnEscanear");
-
-const btnConectar = document.getElementById("btnConectar");
 
 const btnCerrar = document.getElementById("btnCerrar");
 
@@ -1541,219 +1520,6 @@ document.addEventListener("keydown", e => {
     }
 
 });
-
-/*==================================================
-LECTOR SERIAL CP001 COM3
-==================================================*/
-
-
-async function conectarLector(){
-
-    try{
-
-
-        if(!("serial" in navigator)){
-
-            alert(
-            "Este navegador no permite Web Serial.\nUse Chrome o Edge."
-            );
-
-            return;
-
-        }
-
-
-        puertoSerial = await navigator.serial.requestPort();
-
-
-        await puertoSerial.open({
-
-            baudRate:9600
-
-        });
-
-
-        lectorSerialActivo=true;
-
-
-        btnConectar.textContent="✅ Lector conectado";
-
-
-        console.log("CP001 conectado");
-
-
-        leerSerial();
-
-
-
-    }catch(error){
-
-        console.error(
-            "Error lector:",
-            error
-        );
-
-    }
-
-}
-
-
-
-
-async function leerSerial(){
-
-
-    const decoder = new TextDecoderStream();
-
-
-    puertoSerial.readable.pipeTo(
-        decoder.writable
-    );
-
-
-    const lector =
-    decoder.readable.getReader();
-
-
-    let buffer="";
-
-
-
-    while(lectorSerialActivo){
-
-
-        const {value,done}=await lector.read();
-
-
-        if(done) break;
-
-
-
-        if(value){
-
-
-            buffer += value;
-
-
-
-            if(
-                buffer.includes("\n") ||
-                buffer.includes("\r")
-            ){
-
-
-                const codigoLeido =
-                buffer.trim();
-
-
-
-                buffer="";
-
-
-
-                if(codigoLeido){
-
-
-                    const ahora =
-                    Date.now();
-
-
-
-                    if(
-
-                    codigoLeido !== ultimoCodigoSerial ||
-
-                    ahora - tiempoUltimaLecturaSerial > 800
-
-                    ){
-
-
-                        ultimoCodigoSerial =
-                        codigoLeido;
-
-
-                        tiempoUltimaLecturaSerial =
-                        ahora;
-
-
-
-                        console.log(
-                        "Código lector:",
-                        codigoLeido
-                        );
-
-
-                        beep();
-                        vibrar();
-
-
-                        buscar.value =
-                        codigoLeido;
-
-
-                        const producto =
-                        productos.find(
-                        p =>
-                        String(p.codigo).trim()
-                        ===
-                        String(codigoLeido).trim()
-                        );
-
-
-
-                        if(producto){
-
-                            abrirModal(producto);
-
-                        }else{
-
-
-                            if(confirm(
-                            "Producto no encontrado.\n\n¿Desea agregarlo?"
-                            )){
-
-
-                                limpiarFormulario();
-
-
-                                codigo.value =
-                                codigoLeido;
-
-
-                                abrirFormulario();
-
-
-                            }
-
-
-                        }
-
-
-
-                    }
-
-
-                }
-
-
-            }
-
-
-        }
-
-
-    }
-
-
-}
-
-
-
-btnConectar.onclick=()=>{
-
-    conectarLector();
-
-};
 /*==================================================
 ESCANEAR CÓDIGO
 ==================================================*/
@@ -2017,7 +1783,6 @@ window.addEventListener("focus", () => {
     }
 
 });
-
 </script>
 
 </body>

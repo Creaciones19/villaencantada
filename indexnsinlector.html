@@ -78,7 +78,6 @@ button{
 
 }
 
-
 button:hover{
 
     transform:scale(1.03);
@@ -96,9 +95,6 @@ button:hover{
     background:#d32f2f;
     display:none;
 
-}
-#btnConectar{
-    background:#6a1b9a;
 }
 
 /*==================================================
@@ -382,10 +378,6 @@ RESPONSIVE
         📷 Escanear
     </button>
 
-    <button id="btnConectar">
-    🔌 Conectar lector
-</button>
-
 
         <button id="btnLimpiar">
     🗑 Limpiar
@@ -494,17 +486,6 @@ let camaraAbierta = false;
 
 
 let escribiendo = false;
-//==================================================
-// LECTOR SERIAL CP001 COM
-//==================================================
-
-let puertoSerial = null;
-
-let lectorSerialActivo = false;
-
-let ultimoCodigoSerial = "";
-
-let tiempoUltimaLecturaSerial = 0;
 
 
 /*==================================================
@@ -514,8 +495,6 @@ ELEMENTOS
 const buscar = document.getElementById("buscar");
 
 const btnEscanear = document.getElementById("btnEscanear");
-
-const btnConectar = document.getElementById("btnConectar");
 
 const btnLimpiar = document.getElementById("btnLimpiar");
 
@@ -1018,166 +997,6 @@ btnLimpiar.addEventListener("click",()=>{
     noEncontrado.style.display="none";
 
     buscar.focus();
-
-});
-/*==================================================
-LECTOR SERIAL CP001
-==================================================*/
-
-async function conectarLector(){
-
-    try{
-
-        if(!("serial" in navigator)){
-
-            alert("Este navegador no permite Web Serial. Usa Chrome o Edge.");
-
-            return;
-
-        }
-
-
-        puertoSerial = await navigator.serial.requestPort();
-
-
-        await puertoSerial.open({
-
-            baudRate:9600
-
-        });
-
-
-        lectorSerialActivo = true;
-
-
-        btnConectar.textContent="✅ Lector conectado";
-
-
-        console.log("Lector CP001 conectado");
-
-
-        leerSerial();
-
-
-    }catch(error){
-
-        console.log("Error conexión lector:",error);
-
-    }
-
-}
-
-
-
-/*==================================================
-LECTURA CONTINUA COM3
-==================================================*/
-
-async function leerSerial(){
-
-
-    const decoder = new TextDecoderStream();
-
-
-    puertoSerial.readable.pipeTo(
-        decoder.writable
-    );
-
-
-    const lector = decoder.readable.getReader();
-
-
-    let buffer="";
-
-
-    while(lectorSerialActivo){
-
-
-        const {value,done}=await lector.read();
-
-
-        if(done){
-
-            break;
-
-        }
-
-
-        if(value){
-
-
-            buffer += value;
-
-
-            if(
-                buffer.includes("\n") ||
-                buffer.includes("\r")
-            ){
-
-
-                let codigoLeido = buffer.trim();
-
-
-                buffer="";
-
-
-                if(codigoLeido!=""){
-
-
-                    let ahora = Date.now();
-
-
-                    // evita doble lectura inmediata
-
-                    if(
-
-                        codigoLeido !== ultimoCodigoSerial ||
-
-                        ahora - tiempoUltimaLecturaSerial > 800
-
-                    ){
-
-
-                        ultimoCodigoSerial = codigoLeido;
-
-                        tiempoUltimaLecturaSerial = ahora;
-
-
-                        console.log(
-                            "Código serial:",
-                            codigoLeido
-                        );
-
-
-                        buscarCodigo(codigoLeido);
-
-
-                    }
-
-
-                }
-
-
-            }
-
-
-        }
-
-
-    }
-
-
-}
-
-
-
-/*==================================================
-BOTÓN CONECTAR LECTOR
-==================================================*/
-
-btnConectar.addEventListener("click",()=>{
-
-    conectarLector();
 
 });
    </script>
